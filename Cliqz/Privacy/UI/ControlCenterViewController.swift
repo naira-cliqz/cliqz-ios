@@ -10,9 +10,9 @@ import Foundation
 
 class ControlCenterViewController: UIViewController {
 
+	private var topTranparentView = UIView()
 	fileprivate var panelSwitchControl = UISegmentedControl(items: [])
-	fileprivate var panelContainerView: UIView!
-	private let toolBar = UIToolbar()
+	fileprivate var panelContainerView = UIView()
 
 	fileprivate lazy var overviewViewController: OverviewViewController = {
 		let overview = OverviewViewController()
@@ -52,57 +52,49 @@ class ControlCenterViewController: UIViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		setupComponents()
-		self.panelSwitchControl.selectedSegmentIndex = 0
 	}
 
 	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
+		self.panelSwitchControl.selectedSegmentIndex = 0
 		self.switchPanel(self.panelSwitchControl)
 	}
 
 	private func setupComponents() {
-		createPanelSwitchControl()
+		setupTopTransparentView()
+		setupPanelSwitchControl()
+		setupPanelContainer()
+	}
 
-//		let done = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(donePressed))
-//		toolBar.setItems([done], animated: false)
-//		view.addSubview(toolBar)
-		
-//		toolBar.snp.makeConstraints { (make) in
-//			make.bottom.left.right.equalToSuperview()
-//		}
+	func setupTopTransparentView() {
+		topTranparentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(hideControlCenter)))
+		topTranparentView.backgroundColor = UIColor.clear
+		self.view.addSubview(topTranparentView)
+		topTranparentView.snp.makeConstraints { (make) in
+			make.top.left.right.equalToSuperview()
+			make.height.equalTo(70)
+		}
+	}
 
-		panelContainerView = UIView()
+	func setupPanelContainer() {
 		view.addSubview(panelContainerView)
 		panelContainerView.backgroundColor = UIColor.white
-
+		
 		panelContainerView.snp.makeConstraints { make in
 			make.top.equalTo(self.panelSwitchControl.snp.bottom).offset(5)
 			make.left.right.equalTo(self.view)
 			make.bottom.equalTo(self.view)
 		}
-
 	}
 
-	@objc func donePressed(_ button: UIBarButtonItem) {
-		self.dismiss(animated: true, completion: nil)
-	}
-
-	private func createPanelSwitchControl() {
-		let overview = "Overview"
-		let trackers = "Trackers"
-		let globalTrackers = "Global Trackers"
-
+	private func setupPanelSwitchControl() {
+		let overview = NSLocalizedString("Overview", tableName: "Cliqz", comment: "[ControlCenter] Overview panel title")
+		let trackers = NSLocalizedString("Trackers", tableName: "Cliqz", comment: "[ControlCenter] Trackers panel title")
+		let globalTrackers = NSLocalizedString("Global Trackers", tableName: "Cliqz", comment: "[ControlCenter] Global Trackers panel title")
+		
 		let items = [overview, trackers, globalTrackers]
 		self.view.backgroundColor = UIColor.clear
-		let topView = UIView()
-		topView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(hideControlCenter)))
-		topView.backgroundColor = UIColor.clear
-		self.view.addSubview(topView)
-		topView.snp.makeConstraints { (make) in
-			make.top.left.right.equalToSuperview()
-			make.height.equalTo(70)
-		}
-
+		
 		let bgView = UIView()
 		bgView.backgroundColor = UIColor.cliqzBluePrimary
 		
@@ -114,16 +106,19 @@ class ControlCenterViewController: UIViewController {
 		self.view.addSubview(bgView)
 		
 		bgView.snp.makeConstraints { (make) in
-			make.top.equalTo(topView.snp.bottom)
+			make.top.equalTo(topTranparentView.snp.bottom)
 			make.left.right.equalToSuperview()
 			make.height.equalTo(40)
 		}
 		panelSwitchControl.snp.makeConstraints { make in
-			make.top.equalTo(bgView).offset(5)
+			make.centerY.equalTo(bgView)
 			make.left.equalTo(bgView).offset(10)
 			make.right.equalTo(bgView).offset(-10)
-			make.height.equalTo(30)
 		}
+	}
+
+	@objc func donePressed(_ button: UIBarButtonItem) {
+		self.dismiss(animated: true, completion: nil)
 	}
 
 	@objc private func switchPanel(_ sender: UISegmentedControl) {
@@ -133,25 +128,20 @@ class ControlCenterViewController: UIViewController {
 			panel.removeFromParentViewController()
 		}
 
-		let viewController = self.getCurrentPanel()
+		let viewController = self.selectedPanel()
 		addChildViewController(viewController)
 		self.panelContainerView.addSubview(viewController.view)
 		viewController.view.snp.makeConstraints { make in
-			make.top.left.right.bottom.equalToSuperview()
+			make.edges.equalToSuperview()
 		}
 		viewController.didMove(toParentViewController: self)
-
-//		if let panelType = DashBoardPanelType(rawValue: sender.selectedSegmentIndex) {
-//			currentPanel = panelType
-//			self.switchToCurrentPanel()
-//		}
 	}
 
 	@objc private func hideControlCenter() {
-		NotificationCenter.default.post(name: HideControlCenterNotification, object: nil)
+		NotificationCenter.default.post(name: Notification.Name.HideControlCenterNotification, object: nil)
 	}
 
-	private func getCurrentPanel() -> UIViewController {
+	private func selectedPanel() -> UIViewController {
 		switch panelSwitchControl.selectedSegmentIndex {
 		case 0:
 			self.overviewViewController.categories = self.trackersCategories
@@ -165,9 +155,9 @@ class ControlCenterViewController: UIViewController {
 		default:
 			return UIViewController()
 		}
-		return UIViewController()
 	}
 
+	// TODO: should be moved to the DataSource
 	private func generateCategories() {
 		for i in self.trackers {
 //			var count = 1
