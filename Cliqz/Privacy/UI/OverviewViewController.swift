@@ -9,7 +9,7 @@
 import Foundation
 import Charts
 
-class BasicBlockingStatisticsView: UIView {
+class BlockedRequestsView: UIView {
 
 	private var iconView = UIImageView()
 	private var countView = UILabel()
@@ -52,13 +52,9 @@ class BasicBlockingStatisticsView: UIView {
 		super.init(frame: CGRect.zero)
 		self.addSubview(iconView)
 		self.addSubview(countView)
-		countView.textColor = UIColor.cliqzBluePrimary
 		self.addSubview(titleView)
-		titleView.textColor = UIColor.cliqzBluePrimary
 		self.addSubview(switchControl)
-		switchControl.onTintColor = UIColor.cliqzBluePrimary
-		switchControl.thumbTintColor = UIColor.white
-		switchControl.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
+		setStyles()
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
@@ -66,7 +62,11 @@ class BasicBlockingStatisticsView: UIView {
 	}
 	
 	func setStyles() {
-		
+		countView.textColor = UIColor.cliqzBluePrimary
+		titleView.textColor = UIColor.cliqzBluePrimary
+		switchControl.onTintColor = UIColor.cliqzBluePrimary
+		switchControl.thumbTintColor = UIColor.white
+		switchControl.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
 	}
 
 	override func layoutSubviews() {
@@ -104,8 +104,8 @@ class OverviewViewController: UIViewController {
 	private var restrictSiteButton = UIButton(type: .custom)
 	private var pauseGhosteryButton = UIButton(type: .custom)
 
-	private var antitrackingView = BasicBlockingStatisticsView()
-	private var adBlockingView = BasicBlockingStatisticsView()
+	private var antitrackingView = BlockedRequestsView()
+	private var adBlockingView = BlockedRequestsView()
 
 	var categories = [String: [TrackerListApp]]() {
 		didSet {
@@ -115,7 +115,7 @@ class OverviewViewController: UIViewController {
 
 	var blockedTrackersCount: Int = 0 {
 		didSet {
-			blockedTrackers.text = "\(blockedTrackersCount) trackers blocked"
+			blockedTrackers.text = "\(blockedTrackersCount) trackers blocked" // TODO: localize
 		}
 	}
 	var allTrackersCount: Int = 0
@@ -146,69 +146,44 @@ class OverviewViewController: UIViewController {
 		dataSet.colors = [NSUIColor(colorString: "CB55CD"), NSUIColor(colorString: "87D7EF"), NSUIColor(colorString: "43B7C5"), NSUIColor(colorString: "FDC257"), NSUIColor(colorString: "EF671E")]
 		
 		chart?.data = PieChartData(dataSet: dataSet)
-		chart?.centerText = "\(self.allTrackersCount) Trackers found"
+		chart?.centerText = "\(self.allTrackersCount) Trackers found" // TODO: localize
 
-	}
-
-	private func setComponentsStyles() {
-		self.trustSiteButton.backgroundColor = UIColor.white
-		self.trustSiteButton.layer.borderColor = UIColor.gray.cgColor
-		self.trustSiteButton.layer.borderWidth = 1
-		self.trustSiteButton.layer.cornerRadius = 3
-		self.trustSiteButton.setTitleColor(UIColor.gray, for: .normal)
-		trustSiteButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 10);
-		trustSiteButton.titleEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 0);
-
-		self.restrictSiteButton.backgroundColor = UIColor.white
-		self.restrictSiteButton.layer.borderColor = UIColor.gray.cgColor
-		self.restrictSiteButton.layer.borderWidth = 1
-		self.restrictSiteButton.layer.cornerRadius = 3
-		self.restrictSiteButton.setTitleColor(UIColor.gray, for: .normal)
-		self.restrictSiteButton.setImage(UIImage(named: "restrict"), for: .normal)
-		restrictSiteButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 10);
-		restrictSiteButton.titleEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 0);
-		
-		self.pauseGhosteryButton.backgroundColor = UIColor.white
-		self.pauseGhosteryButton.layer.borderColor = UIColor.gray.cgColor
-		self.pauseGhosteryButton.layer.borderWidth = 1
-		self.pauseGhosteryButton.layer.cornerRadius = 3
-		self.pauseGhosteryButton.setTitleColor(UIColor.gray, for: .normal)
 	}
 
 	private func setupComponents() {
 		self.setupPieChart()
+
 		self.view.addSubview(urlLabel)
-		urlLabel.font = UIFont.systemFont(ofSize: 13)
-		urlLabel.textAlignment = .center
 		self.urlLabel.snp.makeConstraints { (make) in
 			make.left.right.equalTo(self.view).inset(7)
 			make.top.equalTo(chart.snp.bottom).offset(10)
 			make.height.equalTo(30)
 		}
+
 		self.view.addSubview(blockedTrackers)
-		blockedTrackers.font = UIFont.systemFont(ofSize: 20)
 		self.blockedTrackers.snp.makeConstraints { (make) in
 			make.centerX.equalTo(self.view)
 			make.top.equalTo(self.urlLabel.snp.bottom)
 			make.height.equalTo(30)
 		}
+		self.blockedTrackers.text = "\(self.blockedTrackersCount) trackers blocked"
+
 		self.view.addSubview(trustSiteButton)
-		self.trustSiteButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
-		self.trustSiteButton.titleLabel?.textColor = UIColor(colorString: "4A4A4A")
 		self.trustSiteButton.snp.makeConstraints { (make) in
 			make.centerX.equalTo(self.view)
 			make.top.equalTo(self.blockedTrackers.snp.bottom).offset(15)
 			make.height.equalTo(30)
 			make.width.equalTo(213)
 		}
+
 		self.view.addSubview(restrictSiteButton)
-		self.restrictSiteButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
 		self.restrictSiteButton.snp.makeConstraints { (make) in
 			make.centerX.equalTo(self.view)
 			make.top.equalTo(self.trustSiteButton.snp.bottom).offset(10)
 			make.height.equalTo(30)
 			make.width.equalTo(213)
 		}
+
 		self.view.addSubview(pauseGhosteryButton)
 		self.pauseGhosteryButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
 		self.pauseGhosteryButton.snp.makeConstraints { (make) in
@@ -217,12 +192,14 @@ class OverviewViewController: UIViewController {
 			make.height.equalTo(30)
 			make.width.equalTo(213)
 		}
+
 		self.view.addSubview(antitrackingView)
 		self.antitrackingView.snp.makeConstraints { (make) in
 			make.left.right.equalTo(self.view)
 			make.top.equalTo(self.pauseGhosteryButton.snp.bottom).offset(10)
 			make.height.equalTo(40)
 		}
+
 		self.view.addSubview(adBlockingView)
 		self.adBlockingView.snp.makeConstraints { (make) in
 			make.left.right.equalTo(self.view)
@@ -230,31 +207,67 @@ class OverviewViewController: UIViewController {
 			make.height.equalTo(40)
 		}
 
-//		self.urlLabel.text = "nytimes.com"
-		self.blockedTrackers.text = "\(self.blockedTrackersCount) trackers blocked"
-		self.trustSiteButton.setTitle("Trust Site", for: .normal)
-		self.trustSiteButton.setTitleColor(UIColor.white, for: .selected)
-		self.trustSiteButton.setImage(UIImage(named: "trust"), for: .normal)
-		self.trustSiteButton.setImage(UIImage(named: "trustAction"), for: .selected)
+		let trustTitle = NSLocalizedString("Trust Site", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Trust button title")
+		self.trustSiteButton.setTitle(trustTitle, for: .normal)
 		self.trustSiteButton.addTarget(self, action: #selector(trustSite), for: .touchUpInside)
 
-		
-		self.restrictSiteButton.setTitle("Restrict Site", for: .normal)
+		let restrictTitle = NSLocalizedString("Restrict Site", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Restrict button title")
+		self.restrictSiteButton.setTitle(restrictTitle, for: .normal)
 		self.restrictSiteButton.addTarget(self, action: #selector(restrictSite), for: .touchUpInside)
-		self.restrictSiteButton.setImage(UIImage(named: "restrictAction"), for: .selected)
-		self.restrictSiteButton.setTitleColor(UIColor.white, for: .selected)
 
+		let pauseGhostery = NSLocalizedString("Pause Ghostery", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Pause Ghostery button title")
+		self.pauseGhosteryButton.setTitle(pauseGhostery, for: .normal)
 
-		self.pauseGhosteryButton.setTitle("Pause Ghostery", for: .normal)
-		
+		// TODO: Count should be from DataSource
 		self.antitrackingView.count = self.blockedTrackersCount
-		self.antitrackingView.title = "Enhanced Anti-Tracking"
+		self.antitrackingView.title = NSLocalizedString("Enhanced Anti-Tracking", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Antitracking switch title")
 		self.antitrackingView.isSwitchOn = true
 		self.antitrackingView.iconName = "antitracking"
+		// TODO: Count should be from DataSource
 		self.adBlockingView.count = 0
-		self.adBlockingView.title = "Enhanced Ad Blocking"
+		self.adBlockingView.title = NSLocalizedString("Enhanced Ad Blocking", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Ad blocking switch title")
 		self.adBlockingView.isSwitchOn = true
 		self.adBlockingView.iconName = "adblocking"
+	}
+
+	private func setComponentsStyles() {
+		chart.backgroundColor = NSUIColor.clear
+
+		self.urlLabel.font = UIFont.systemFont(ofSize: 13)
+		self.urlLabel.textAlignment = .center
+
+		self.blockedTrackers.font = UIFont.systemFont(ofSize: 20)
+
+		self.trustSiteButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+		self.trustSiteButton.titleLabel?.textColor = UIColor(colorString: "4A4A4A")
+		self.trustSiteButton.backgroundColor = UIColor.white
+		self.trustSiteButton.layer.borderColor = UIColor.gray.cgColor
+		self.trustSiteButton.layer.borderWidth = 1
+		self.trustSiteButton.layer.cornerRadius = 3
+		self.trustSiteButton.setTitleColor(UIColor.white, for: .selected)
+		self.trustSiteButton.setTitleColor(UIColor.gray, for: .normal)
+		self.trustSiteButton.setImage(UIImage(named: "trust"), for: .normal)
+		self.trustSiteButton.setImage(UIImage(named: "trustAction"), for: .selected)
+		self.trustSiteButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 10);
+		self.trustSiteButton.titleEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 0);
+
+		self.restrictSiteButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+		self.restrictSiteButton.backgroundColor = UIColor.white
+		self.restrictSiteButton.layer.borderColor = UIColor.gray.cgColor
+		self.restrictSiteButton.layer.borderWidth = 1
+		self.restrictSiteButton.layer.cornerRadius = 3
+		self.restrictSiteButton.setTitleColor(UIColor.gray, for: .normal)
+		self.restrictSiteButton.setTitleColor(UIColor.white, for: .selected)
+		self.restrictSiteButton.setImage(UIImage(named: "restrict"), for: .normal)
+		self.restrictSiteButton.setImage(UIImage(named: "restrictAction"), for: .selected)
+		self.restrictSiteButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 10);
+		self.restrictSiteButton.titleEdgeInsets = UIEdgeInsetsMake(0, 10, 0, 0);
+
+		self.pauseGhosteryButton.backgroundColor = UIColor.white
+		self.pauseGhosteryButton.layer.borderColor = UIColor.gray.cgColor
+		self.pauseGhosteryButton.layer.borderWidth = 1
+		self.pauseGhosteryButton.layer.cornerRadius = 3
+		self.pauseGhosteryButton.setTitleColor(UIColor.gray, for: .normal)
 	}
 
 	@objc private func trustSite() {
@@ -267,6 +280,7 @@ class OverviewViewController: UIViewController {
 		if self.restrictSiteButton.isSelected {
 			self.restrictSite()
 		}
+		// TODO: API Call
 	}
 
 	@objc private func restrictSite() {
@@ -279,32 +293,11 @@ class OverviewViewController: UIViewController {
 		if self.trustSiteButton.isSelected {
 			self.trustSite()
 		}
+		// TODO: API Call
 	}
 
 	private func setupPieChart() {
-		let values: [Double] = [11, 33, 81, 52, 97, 101, 75]
-		
-		var entries: [PieChartDataEntry] = Array()
-		
-		for value in values
-		{
-			entries.append(PieChartDataEntry(value: value, icon: UIImage(named: "icon", in: Bundle(for: self.classForCoder), compatibleWith: nil)))
-		}
-		
-		let dataSet = PieChartDataSet(values: entries, label: "")
-		dataSet.drawIconsEnabled = false
-		dataSet.drawValuesEnabled = false
-		dataSet.iconsOffset = CGPoint(x: 0, y: 20.0)
-		dataSet.colors = ChartColorTemplates.vordiplom()
-			+ ChartColorTemplates.joyful()
-			+ ChartColorTemplates.colorful()
-			+ ChartColorTemplates.liberty()
-			+ ChartColorTemplates.pastel()
-			+ [UIColor(red: 51/255, green: 181/255, blue: 229/255, alpha: 1)]
-		
-		chart = PieChartView(frame: CGRect(x: 0, y: 0, width: 480, height: 350))
-		chart.backgroundColor = NSUIColor.clear
-//		chart.data = PieChartData(dataSet: dataSet)
+		chart = PieChartView()
 		chart.chartDescription?.text = ""
 		chart.legend.enabled = false
 		chart.holeRadiusPercent = 0.8
