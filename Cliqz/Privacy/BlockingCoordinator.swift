@@ -11,11 +11,17 @@ import WebKit
 final class BlockingCoordinator {
     
     var isAdblockerOn: Bool {
-        return true
+        return false
     }
     
-    var isAntitrackingOn: Bool {
-        return UserPreferences.instance.blockingMode != .none
+    func isAntitrackingOn(domain: String?) -> Bool {
+        //logic if I load the antitracking
+        //when can this be off?
+        //when the site is trusted
+        if let domainStr = domain, let domainObj = DomainStore.get(domain: domainStr) {
+            return !(domainObj.translatedState == .trusted)
+        }
+        return true
     }
     
     enum BlockListType {
@@ -26,34 +32,42 @@ final class BlockingCoordinator {
     //order in which to load the blocklists
     let order: [BlockListType] = [.antitracking, .adblocker]
     
-    func featureIsOn(forType: BlockListType) -> Bool {
-        return forType == .antitracking ? isAntitrackingOn : isAdblockerOn
+    func featureIsOn(forType: BlockListType, domain: String?) -> Bool {
+        return forType == .antitracking ? isAntitrackingOn(domain: domain) : isAdblockerOn
     }
     
-    func identifiersForAntitracking() -> [String] {
+    func identifiersForAntitracking(domain: String?) -> [String] {
+        //logic what to load for antitracking
         if UserPreferences.instance.blockingMode == .all {
             return BlockListIdentifiers.antitrackingBlockAllIdentifiers()
         }
-        else if UserPreferences.instance.blockingMode == .selected {
-            return BlockListIdentifiers.antitrackingBlockSelectedIdentifiers()
+        else {
+            if let domainStr = domain, let domainObj = DomainStore.get(domain: domainStr) {
+                if domainObj.translatedState == .restricted {
+                    return BlockListIdentifiers.antitrackingBlockAllIdentifiers()
+                }
+            }
         }
         
-        return []
+        //assemble list of appIds for which blocklists need to loaded
+        return BlockListIdentifiers.antitrackingBlockSelectedIdentifiers(domain: domain)
     }
     
-    func identifiersFor(type: BlockListType) -> [String] {
-        return type == .antitracking ? identifiersForAntitracking() : BlockListIdentifiers.adblockingIdentifiers()
+    func identifiersFor(type: BlockListType, domain: String?) -> [String] {
+        return type == .antitracking ? identifiersForAntitracking(domain: domain) : BlockListIdentifiers.adblockingIdentifiers()
     }
     
+    //TODO: Make sure that at the time of the coordinatedUpdate, all necessary blocklists are in the cache
     func coordinatedUpdate(webView: WKWebView?) {
         guard let webView = webView else {return}
         var blockLists: [WKContentRuleList] = []
         let dispatchGroup = DispatchGroup()
+        let domain = webView.url?.normalizedHost
         for type in order {
-            if featureIsOn(forType: type) {
+            if featureIsOn(forType: type, domain: domain) {
                 //get the blocklists for that type
                 dispatchGroup.enter()
-                let identifiers = identifiersFor(type: type)
+                let identifiers = identifiersFor(type: type, domain: domain)
                 BlockListManager.shared.getBlockLists(forIdentifiers: identifiers, callback: { (lists) in
                     blockLists.append(contentsOf: lists)
                     type == .antitracking ? debugPrint("Antitracking is ON") : debugPrint("Adblocking is ON")
