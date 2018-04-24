@@ -14,10 +14,10 @@ class TrackerState: Object {
     @objc dynamic var state: Int = 0 //0 none, 1 trusted, 2 restricted, 3 blocked
     
     override static func primaryKey() -> String? {
-        return "appID"
+        return "appId"
     }
     
-    func translatedState() -> TrackerStateEnum {
+    var translatedState: TrackerStateEnum {
         switch state {
         case 0:
             return .none

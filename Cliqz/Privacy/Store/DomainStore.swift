@@ -80,22 +80,41 @@ class DomainStore: NSObject {
         }
     }
     
-    class func add(appId: Int, toDomain: Domain, inList: ListType) {
-        if inList == .trustedList {
-            toDomain.trustedTrackers.append(appId)
+    class func add(appId: Int, domain: Domain, list: ListType) {
+        if list == .trustedList {
+            domain.trustedTrackers.append(appId)
         }
-        else if inList == .restrictedList {
-            toDomain.restrictedTrackers.append(appId)
+        else if list == .restrictedList {
+            domain.restrictedTrackers.append(appId)
         }
         
         let realm = try! Realm()
         do {
             try realm.write {
-                realm.add(toDomain, update: true)
+                realm.add(domain, update: true)
             }
         }
         catch {
-            debugPrint("could not add appId = \(appId) to list = \(inList) of domain = \(toDomain.name)")
+            debugPrint("could not add appId = \(appId) to list = \(list) of domain = \(domain.name)")
+        }
+    }
+    
+    class func remove(appId: Int, domain: Domain, list: ListType) {
+        if list == .trustedList {
+            domain.trustedTrackers.remove(element: appId)
+        }
+        else if list == .restrictedList {
+            domain.restrictedTrackers.remove(element: appId)
+        }
+        
+        let realm = try! Realm()
+        do {
+            try realm.write {
+                realm.add(domain, update: true)
+            }
+        }
+        catch {
+            debugPrint("could not add appId = \(appId) to list = \(list) of domain = \(domain.name)")
         }
     }
     
@@ -107,6 +126,17 @@ class DomainStore: NSObject {
             return 1
         case .restricted:
             return 2
+        }
+    }
+}
+
+extension List where Element: Comparable {
+    func remove(element: Element) {
+        for i in 0..<self.count {
+            let item = self[i]
+            if item == element {
+                self.remove(at: i)
+            }
         }
     }
 }

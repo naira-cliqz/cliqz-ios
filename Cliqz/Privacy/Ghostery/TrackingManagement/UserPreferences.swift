@@ -10,9 +10,8 @@ import Foundation
 @objc open class UserPreferences : NSObject {
     
     enum BlockingMode: Int {
-        case none = 0
-        case selected = 1
-        case all = 2
+        case notall = 0 //something or nothing
+        case all = 1
     }
     
     static let instance = UserPreferences()
@@ -30,7 +29,7 @@ import Foundation
                 return mode
             }
             else {
-                return .none
+                return .notall
             }
         }
         set {

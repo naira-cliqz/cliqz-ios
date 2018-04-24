@@ -26,8 +26,8 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     let domainObj: Domain?
     let domainStr: String
     
-    init(domain: String) {
-        self.domainStr = domain
+    init(url: URL) {
+        self.domainStr = url.normalizedHost ?? url.absoluteString
         self.domainObj = DomainStore.get(domain: domainStr)
     }
     
