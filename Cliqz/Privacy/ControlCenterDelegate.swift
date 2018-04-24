@@ -18,20 +18,25 @@ protocol ControlCenterDelegateProtocol {
 
 class ControlCenterDelegate: ControlCenterDelegateProtocol {
     let domainStr: String
-    let domainObj: Domain?
     
-    init(domain: String) {
-        self.domainStr = domain
-        self.domainObj = DomainStore.get(domain: domainStr)
+    init(url: URL) {
+        self.domainStr = url.normalizedHost ?? url.absoluteString
+    }
+    
+    private func getOrCreateDomain() -> Domain {
+        //if we have done anything with this domain before we will have something in the DB
+        //otherwise we need to create it
+        if let domainO = DomainStore.get(domain: self.domainStr) {
+            return domainO
+        } else {
+            return DomainStore.create(domain: self.domainStr)
+        }
     }
     
     func chageSiteState(to: DomainState) {
-        if let domainObj = domainObj {
-            DomainStore.changeState(domain: domainObj, state: to)
-        }
-        else {
-            debugPrint("PROBLEM -- domainObj does not exist!")
-        }
+        let domainObj: Domain
+        domainObj = getOrCreateDomain()
+        DomainStore.changeState(domain: domainObj, state: to)
     }
     
     func pauseGhostery() {
@@ -43,7 +48,7 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
             UserPreferences.instance.blockingMode = .all
         }
         else {
-            UserPreferences.instance.blockingMode = .none
+            UserPreferences.instance.blockingMode = .notall
         }
         UserPreferences.instance.writeToDisk()
     }
@@ -55,6 +60,25 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
     func changeState(appId: Int, state: TrackerStateEnum) {
         if let trakerListApp = TrackerList.instance.apps[appId] {
             TrackerStateStore.change(trackerState: trakerListApp.state, toState: state)
+            
+            let domainObj = getOrCreateDomain()
+            if state == .trusted {
+                //add it to trusted sites
+                DomainStore.add(appId: appId, domain: domainObj, list: .trustedList)
+                //remove it from restricted if it is there
+                DomainStore.remove(appId: appId, domain: domainObj, list: .restrictedList)
+            }
+            else if state == .restricted {
+                //add it to restricted
+                DomainStore.add(appId: appId, domain: domainObj, list: .restrictedList)
+                //remove from trusted if it is there
+                DomainStore.remove(appId: appId, domain: domainObj, list: .trustedList)
+            }
+            else {
+                //remove from trusted and restricted
+                DomainStore.remove(appId: appId, domain: domainObj, list: .trustedList)
+                DomainStore.remove(appId: appId, domain: domainObj, list: .restrictedList)
+            }
         }
         else {
             debugPrint("PROBLEM -- trackerState does not exist for appId = \(appId)!")

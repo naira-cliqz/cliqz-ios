@@ -8,10 +8,11 @@
 
 final class BlockListIdentifiers {
     
-    class func antitrackingBlockSelectedIdentifiers() -> [String] {
-        let appIds = TrackerStore.shared.all()
+    class func antitrackingBlockSelectedIdentifiers(domain: String?) -> [String] {
         
-        func getBugIds(appIds: [Int]) -> [Int] {
+        let appIds = getAppIds(domain: domain)
+        
+        func getBugIds(appIds: Set<Int>) -> [Int] {
             return appIds.flatMap { (appId) -> [Int] in
                 return TrackerList.instance.app2bug[appId] ?? []
             }
@@ -53,6 +54,31 @@ final class BlockListIdentifiers {
         }).sorted(by: { (p1, p2) -> Bool in
             return adblockerFileNumber(path: p1) < adblockerFileNumber(path: p2)
         })
+    }
+    
+    class private func getAppIds(domain: String?) -> Set<Int> {
+        
+        //load global trackers
+        //load trackers specific to this page
+        var specific2domainRestricted: Set<Int> = Set()
+        var specific2domainTrusted: Set<Int> = Set()
+        
+        //TODO: Solve this bottle neck
+        var global: Set<Int> = Set(TrackerList.instance.globalTrackerList().filter({ (app) -> Bool in
+            return app.state.translatedState == .blocked
+        }).map { (app) -> Int in
+            return app.appId
+        })
+        
+        if let domainStr = domain, let domainObj = DomainStore.get(domain: domainStr) {
+            specific2domainTrusted = Set(domainObj.trustedTrackers)
+            specific2domainRestricted = Set(domainObj.restrictedTrackers)
+        }
+        
+        global.formUnion(specific2domainRestricted)
+        global.subtract(specific2domainTrusted)
+        
+        return global
     }
 }
 

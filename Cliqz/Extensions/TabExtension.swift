@@ -29,7 +29,7 @@ extension Tab {
         self.webView?.configuration.userContentController.addUserScript(postloadScript)
         
         //Cliqz: Privacy - SetUpBlocking
-        blockingCoordinator.coordinatedUpdate(webView: self.webView)
+        updateBlocking()
         
         //NotificationCenter.default.addObserver(self, selector: #selector(trackersChanged), name: trackerViewDismissedNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(trackersChanged), name: trackersLoadedNotification, object: nil)
@@ -41,7 +41,28 @@ extension Tab {
                 return
             }
         }
+        updateBlocking()
+    }
+    
+    func didDomainChange() -> Bool {
+        if let domain = self.webView?.url?.normalizedHost {
+            return domain != lastDomain
+        }
+        return false
+    }
+    
+    func updateBlocking() {
         blockingCoordinator.coordinatedUpdate(webView: self.webView)
+    }
+    
+    func urlChanged() {
+        if didDomainChange() {
+            updateBlocking()
+            if let domain = self.webView?.url?.normalizedHost {
+                lastDomain = domain
+            }
+        }
+        self.sendURLChangedNotification()
     }
     
     func sendURLChangedNotification() {
