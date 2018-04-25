@@ -274,28 +274,29 @@ let trackersLoadedNotification = Notification.Name(rawValue:"TrackersLoadedNotif
     func addDiscoveredTracker(_ bugId: Int, bugUrl: URL, pageUrl: URL, timestamp: Double) -> TrackerListBug? {
         let appId = appIdFromBugId(bugId)
         if (appId >= 0) {
-            let pageUrlString = pageUrl.absoluteString
-            var pageTrackers = discoveredBugs[pageUrlString]
-            if pageTrackers == nil {
-                // add a tracker list for this page
-                pageTrackers = PageTrackersFound()
+            if let pageUrlString = pageUrl.normalizedHost {
+                var pageTrackers = discoveredBugs[pageUrlString]
+                if pageTrackers == nil {
+                    // add a tracker list for this page
+                    pageTrackers = PageTrackersFound()
+                }
+                
+                // add the tracker to the list for the page
+                let trackerBug = TrackerListBug(bugId: bugId, appId: appId, url: bugUrl.absoluteString)
+                trackerBug.timestamp = timestamp
+                
+                // see if this one should be blocked
+                //            if shouldBlockTracker(appId) {
+                //                trackerBug.isBlocked = true
+                //            }
+                
+                pageTrackers?.addTracker(trackerBug)
+                
+                // update the list
+                discoveredBugs[pageUrlString] = pageTrackers
+                
+                return trackerBug
             }
-            
-            // add the tracker to the list for the page
-            let trackerBug = TrackerListBug(bugId: bugId, appId: appId, url: bugUrl.absoluteString)
-            trackerBug.timestamp = timestamp
-            
-            // see if this one should be blocked
-//            if shouldBlockTracker(appId) {
-//                trackerBug.isBlocked = true
-//            }
-
-            pageTrackers?.addTracker(trackerBug)
-            
-            // update the list
-            discoveredBugs[pageUrlString] = pageTrackers
-
-            return trackerBug
         }
         
         //print("Total trackers: \(pageTrackers.count)")
