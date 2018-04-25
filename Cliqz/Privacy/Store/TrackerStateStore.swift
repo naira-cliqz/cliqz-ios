@@ -66,9 +66,9 @@ class TrackerStateStore: NSObject {
     
     class func change(trackerState: TrackerState, toState: TrackerStateEnum) {
         let realm = try! Realm()
-        trackerState.state = intForState(state: toState)
         do {
             try realm.write {
+                trackerState.state = intForState(state: toState)
                 realm.add(trackerState, update: true)
             }
         }

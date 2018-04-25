@@ -81,16 +81,18 @@ class DomainStore: NSObject {
     }
     
     class func add(appId: Int, domain: Domain, list: ListType) {
-        if list == .trustedList {
-            domain.trustedTrackers.append(appId)
-        }
-        else if list == .restrictedList {
-            domain.restrictedTrackers.append(appId)
-        }
         
         let realm = try! Realm()
         do {
             try realm.write {
+                
+                if list == .trustedList {
+                    domain.trustedTrackers.append(appId)
+                }
+                else if list == .restrictedList {
+                    domain.restrictedTrackers.append(appId)
+                }
+                
                 realm.add(domain, update: true)
             }
         }
@@ -100,16 +102,18 @@ class DomainStore: NSObject {
     }
     
     class func remove(appId: Int, domain: Domain, list: ListType) {
-        if list == .trustedList {
-            domain.trustedTrackers.remove(element: appId)
-        }
-        else if list == .restrictedList {
-            domain.restrictedTrackers.remove(element: appId)
-        }
         
         let realm = try! Realm()
         do {
             try realm.write {
+                
+                if list == .trustedList {
+                    domain.trustedTrackers.remove(element: appId)
+                }
+                else if list == .restrictedList {
+                    domain.restrictedTrackers.remove(element: appId)
+                }
+                
                 realm.add(domain, update: true)
             }
         }
