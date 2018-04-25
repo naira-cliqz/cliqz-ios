@@ -19,10 +19,12 @@ extension BrowserViewController {
 	
 	func showControlCenter(notification: Notification) {
 		let controlCenter = ControlCenterViewController()
+		
 		if let pageUrl = notification.object as? String {
-			// TODO: provide a DataSource Instead
-			controlCenter.trackers = TrackerList.instance.detectedTrackersForPage(pageUrl)
 			controlCenter.pageURL = pageUrl
+			// TODO: provide a DataSource Instead
+//			controlCenter.trackers = TrackerList.instance.detectedTrackersForPage(pageUrl)
+//			controlCenter.pageURL = host
 		}
 		self.addChildViewController(controlCenter)
 		self.view.addSubview(controlCenter.view)

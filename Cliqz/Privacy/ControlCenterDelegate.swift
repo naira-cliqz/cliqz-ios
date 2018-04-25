@@ -8,7 +8,7 @@
 
 import UIKit
 
-protocol ControlCenterDelegateProtocol {
+protocol ControlCenterDelegateProtocol: class {
     func chageSiteState(to: DomainState)
     func pauseGhostery()
     func turnGlobalAntitracking(on: Bool)

@@ -67,7 +67,6 @@ extension GlobalTrackersViewController: UITableViewDataSource, UITableViewDelega
 		
 		// Configure the cell...
 		cell.textLabel?.text = trackers[indexPath.row].name
-		cell.toggle.isOn = trackers[indexPath.row].isBlocked
 		cell.appId = trackers[indexPath.row].appId
 //		cell.delegate = self
 		print("AAAAAA - \(trackers[indexPath.row].category)")

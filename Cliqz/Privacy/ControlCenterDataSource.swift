@@ -8,7 +8,7 @@
 
 import UIKit
 
-protocol ControlCenterDSProtocol {
+protocol ControlCenterDSProtocol: class {
     func domainString() -> String
     func trackersByCategory() -> Dictionary<String, [TrackerListApp]>
     func globalTrackersByCategory() -> Dictionary<String, [TrackerListApp]>

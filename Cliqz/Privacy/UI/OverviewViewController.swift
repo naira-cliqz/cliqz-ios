@@ -104,8 +104,18 @@ class OverviewViewController: UIViewController {
 	private var restrictSiteButton = UIButton(type: .custom)
 	private var pauseGhosteryButton = UIButton(type: .custom)
 
-	private var antitrackingView = BlockedRequestsView()
 	private var adBlockingView = BlockedRequestsView()
+
+	weak var dataSource: ControlCenterDSProtocol? {
+		didSet {
+			updateData()
+		}
+	}
+	weak var delegate: ControlCenterDelegateProtocol? {
+		didSet {
+			updateData()
+		}
+	}
 
 	var categories = [String: [TrackerListApp]]() {
 		didSet {
@@ -113,12 +123,6 @@ class OverviewViewController: UIViewController {
 		}
 	}
 
-	var blockedTrackersCount: Int = 0 {
-		didSet {
-			blockedTrackers.text = "\(blockedTrackersCount) trackers blocked" // TODO: localize
-		}
-	}
-	var allTrackersCount: Int = 0
 	var pageURL: String = "" {
 		didSet {
 			self.urlLabel.text = pageURL
@@ -137,17 +141,15 @@ class OverviewViewController: UIViewController {
 	}
 
 	private func updateData() {
-		let values = self.categories.map { PieChartDataEntry(value: Double($0.1.count), label: nil) }
-		self.allTrackersCount = self.categories.flatMap({ $0.1.count }).reduce(0, +)
+		let values = self.dataSource?.countByCategory().map { PieChartDataEntry(value: Double($0.1), label: nil) }
 		let dataSet = PieChartDataSet(values: values, label: "")
 		dataSet.drawIconsEnabled = false
 		dataSet.drawValuesEnabled = false
 		dataSet.iconsOffset = CGPoint(x: 0, y: 20.0)
 		dataSet.colors = [NSUIColor(colorString: "CB55CD"), NSUIColor(colorString: "87D7EF"), NSUIColor(colorString: "43B7C5"), NSUIColor(colorString: "FDC257"), NSUIColor(colorString: "EF671E")]
-		
+		blockedTrackers.text = "\(self.dataSource?.totalTrackerCount() ?? 0) trackers blocked" // TODO: localize
 		chart?.data = PieChartData(dataSet: dataSet)
-		chart?.centerText = "\(self.allTrackersCount) Trackers found" // TODO: localize
-
+		chart?.centerText = "\(self.dataSource?.totalTrackerCount() ?? 0) Trackers found" // TODO: localize
 	}
 
 	private func setupComponents() {
@@ -166,7 +168,6 @@ class OverviewViewController: UIViewController {
 			make.top.equalTo(self.urlLabel.snp.bottom)
 			make.height.equalTo(30)
 		}
-		self.blockedTrackers.text = "\(self.blockedTrackersCount) trackers blocked"
 
 		self.view.addSubview(trustSiteButton)
 		self.trustSiteButton.snp.makeConstraints { (make) in
@@ -193,17 +194,10 @@ class OverviewViewController: UIViewController {
 			make.width.equalTo(213)
 		}
 
-		self.view.addSubview(antitrackingView)
-		self.antitrackingView.snp.makeConstraints { (make) in
-			make.left.right.equalTo(self.view)
-			make.top.equalTo(self.pauseGhosteryButton.snp.bottom).offset(10)
-			make.height.equalTo(40)
-		}
-
 		self.view.addSubview(adBlockingView)
 		self.adBlockingView.snp.makeConstraints { (make) in
 			make.left.right.equalTo(self.view)
-			make.top.equalTo(self.antitrackingView.snp.bottom)
+			make.top.equalTo(self.pauseGhosteryButton.snp.bottom).offset(10)
 			make.height.equalTo(40)
 		}
 
@@ -218,11 +212,7 @@ class OverviewViewController: UIViewController {
 		let pauseGhostery = NSLocalizedString("Pause Ghostery", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Pause Ghostery button title")
 		self.pauseGhosteryButton.setTitle(pauseGhostery, for: .normal)
 
-		// TODO: Count should be from DataSource
-		self.antitrackingView.count = self.blockedTrackersCount
-		self.antitrackingView.title = NSLocalizedString("Enhanced Anti-Tracking", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Antitracking switch title")
-		self.antitrackingView.isSwitchOn = true
-		self.antitrackingView.iconName = "antitracking"
+
 		// TODO: Count should be from DataSource
 		self.adBlockingView.count = 0
 		self.adBlockingView.title = NSLocalizedString("Enhanced Ad Blocking", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Ad blocking switch title")

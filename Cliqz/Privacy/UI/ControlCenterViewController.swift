@@ -10,6 +10,9 @@ import Foundation
 
 class ControlCenterViewController: UIViewController {
 
+	var dataSource: ControlCenterDSProtocol?
+	var delegate: ControlCenterDelegateProtocol?
+
 	private var topTranparentView = UIView()
 	fileprivate var panelSwitchControl = UISegmentedControl(items: [])
 	fileprivate var panelContainerView = UIView()
@@ -29,23 +32,14 @@ class ControlCenterViewController: UIViewController {
 		return global
 	}()
 
-	private var _trackers: [TrackerListApp] = []
-	private var trackersCategories = [String: [TrackerListApp]]()
-
-	var trackers: [TrackerListApp] {
-		set {
-			_trackers = newValue
-			self.generateCategories()
-			self.updateBlockedTrackersCount()
-		}
-		get {
-			return _trackers
-		}
-	}
-
 	var pageURL: String = "" {
 		didSet {
-			self.overviewViewController.pageURL = pageURL
+			if !pageURL.isEmpty,
+				let url = URL(string: pageURL) {
+				self.dataSource = ControlCenterDataSource(url: url)
+				self.delegate = ControlCenterDelegate(url: url)
+				self.overviewViewController.pageURL = url.host ?? ""
+			}
 		}
 	}
 
@@ -144,40 +138,44 @@ class ControlCenterViewController: UIViewController {
 	private func selectedPanel() -> UIViewController {
 		switch panelSwitchControl.selectedSegmentIndex {
 		case 0:
-			self.overviewViewController.categories = self.trackersCategories
+//			self.overviewViewController.categories = self.trackersCategories
+			self.overviewViewController.dataSource = self.dataSource
+			self.overviewViewController.delegate = self.delegate
 			return self.overviewViewController
 		case 1:
-			self.trackersViewController.trackers = trackersCategories
+//			self.trackersViewController.trackers = trackersCategories
+			self.trackersViewController.dataSource = self.dataSource
+			self.trackersViewController.delegate = self.delegate
 			return self.trackersViewController
 		case 2:
-			self.globalTrackersViewController.trackers = TrackerList.instance.apps.map { $0.1 }
+//			self.globalTrackersViewController.trackers = TrackerList.instance.apps.map { $0.1 }
 			return self.globalTrackersViewController
 		default:
 			return UIViewController()
 		}
 	}
 
-	// TODO: should be moved to the DataSource
-	private func generateCategories() {
-		for i in self.trackers {
-//			var count = 1
-			if let _ = self.trackersCategories[i.category] {
-				 self.trackersCategories[i.category]?.append(i)
-//				count = x + 1
-			} else {
-				self.trackersCategories[i.category] = [i]
-			}
-		}
-		self.overviewViewController.categories = self.trackersCategories
-	}
+//	// TODO: should be moved to the DataSource
+//	private func generateCategories() {
+//		for i in self.trackers {
+////			var count = 1
+//			if let _ = self.trackersCategories[i.category] {
+//				 self.trackersCategories[i.category]?.append(i)
+////				count = x + 1
+//			} else {
+//				self.trackersCategories[i.category] = [i]
+//			}
+//		}
+//		self.overviewViewController.categories = self.trackersCategories
+//	}
 
-	private func updateBlockedTrackersCount() {
-		let count = self.trackers.reduce(0) { (accumulator, value) -> Int in
-			if value.isBlocked {
-				return accumulator + 1
-			}
-			return accumulator
-		}
-		self.overviewViewController.blockedTrackersCount = count
-	}
+//	private func updateBlockedTrackersCount() {
+//		let count = self.trackers.reduce(0) { (accumulator, value) -> Int in
+//			if value.isBlocked {
+//				return accumulator + 1
+//			}
+//			return accumulator
+//		}
+//		self.overviewViewController.blockedTrackersCount = count
+//	}
 }
