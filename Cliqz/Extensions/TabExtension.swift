@@ -10,7 +10,6 @@ import WebKit
 import Shared
 
 let urlChangedNotification = Notification.Name(rawValue: "URLChangedNotification")
-//let trackerViewDismissedNotification = Notification.Name(rawValue: "TrackerViewDismissed")
 
 extension Tab {
     
@@ -31,16 +30,16 @@ extension Tab {
         //Cliqz: Privacy - SetUpBlocking
         updateBlocking()
         
-        //NotificationCenter.default.addObserver(self, selector: #selector(trackersChanged), name: trackerViewDismissedNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(trackersChanged), name: controlCenterDismissedNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(trackersChanged), name: trackersLoadedNotification, object: nil)
     }
     
     @objc func trackersChanged(_ notification: Notification) {
-        if let userInfo = notification.userInfo {
-            if let changes = userInfo["changes"] as? Bool, changes == false {
-                return
-            }
-        }
+//        if let userInfo = notification.userInfo {
+//            if let changes = userInfo["changes"] as? Bool, changes == false {
+//                return
+//            }
+//        }
         updateBlocking()
     }
     

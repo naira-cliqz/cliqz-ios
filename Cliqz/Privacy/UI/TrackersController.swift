@@ -22,9 +22,6 @@ let AllCategories = ["advertising": "Advertising",
 					 "uncategorized": "Uncategorized"
 ]
 
-
-let trackerViewDismissedNotification = Notification.Name(rawValue: "TrackerViewDismissed")
-
 class TrackersController: UIViewController {
 	
 	weak var dataSource: ControlCenterDSProtocol? {
@@ -92,10 +89,20 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
         // Configure the cell...
 		let c = self.categories[indexPath.section]
 		let tracker = self.dataSource?.trackersByCategory()[c]?[indexPath.row]
-		let state = tracker?.state.translatedState
-		if let state = tracker?.state.translatedState,
-			let name = tracker?.name,
-			state == .blocked || state == .restricted {
+        
+        let domainState = self.dataSource?.domainState()
+        let state: TrackerStateEnum //= self.dataSource?.domainState() == .restricted ? .restricted : (tracker?.state.translatedState ?? .none)
+        if domainState == .restricted {
+            state = .restricted
+        }
+        else if domainState == .trusted {
+            state = .trusted
+        }
+        else {
+            state = tracker?.state.translatedState ?? .none
+        }
+        
+		if let name = tracker?.name, state == .blocked || state == .restricted {
 			let str = NSMutableAttributedString(string: name)
 			str.addAttributes([NSStrikethroughStyleAttributeName : 1], range: NSMakeRange(0, name.count))
 			cell.textLabel?.attributedText = str

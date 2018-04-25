@@ -10,6 +10,8 @@ import WebKit
 
 final class BlockingCoordinator {
     
+    private var isUpdating = false
+    
     var isAdblockerOn: Bool {
         return false
     }
@@ -59,7 +61,12 @@ final class BlockingCoordinator {
     
     //TODO: Make sure that at the time of the coordinatedUpdate, all necessary blocklists are in the cache
     func coordinatedUpdate(webView: WKWebView?) {
+        guard isUpdating == false else { return }
+        
+        isUpdating = true
+        
         guard let webView = webView else {return}
+    
         var blockLists: [WKContentRuleList] = []
         let dispatchGroup = DispatchGroup()
         let domain = webView.url?.normalizedHost
@@ -82,6 +89,8 @@ final class BlockingCoordinator {
         dispatchGroup.notify(queue: .main) {
             webView.configuration.userContentController.removeAllContentRuleLists()
             blockLists.forEach(webView.configuration.userContentController.add)
+            debugPrint("BlockLists Loaded")
+            self.isUpdating = false
         }
     }
 }

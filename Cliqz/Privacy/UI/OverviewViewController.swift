@@ -203,11 +203,11 @@ class OverviewViewController: UIViewController {
 
 		let trustTitle = NSLocalizedString("Trust Site", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Trust button title")
 		self.trustSiteButton.setTitle(trustTitle, for: .normal)
-		self.trustSiteButton.addTarget(self, action: #selector(trustSite), for: .touchUpInside)
+		self.trustSiteButton.addTarget(self, action: #selector(trustSitePressed), for: .touchUpInside)
 
 		let restrictTitle = NSLocalizedString("Restrict Site", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Restrict button title")
 		self.restrictSiteButton.setTitle(restrictTitle, for: .normal)
-		self.restrictSiteButton.addTarget(self, action: #selector(restrictSite), for: .touchUpInside)
+		self.restrictSiteButton.addTarget(self, action: #selector(restrictSitePressed), for: .touchUpInside)
 
 		let pauseGhostery = NSLocalizedString("Pause Ghostery", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Pause Ghostery button title")
 		self.pauseGhosteryButton.setTitle(pauseGhostery, for: .normal)
@@ -258,33 +258,66 @@ class OverviewViewController: UIViewController {
 		self.pauseGhosteryButton.layer.borderWidth = 1
 		self.pauseGhosteryButton.layer.cornerRadius = 3
 		self.pauseGhosteryButton.setTitleColor(UIColor.gray, for: .normal)
+        
+        let domainState = self.dataSource?.domainState()
+        if domainState == .trusted {
+            setTrustSite(true)
+        } else if domainState == .restricted {
+            setRestrictSite(true)
+        }
 	}
 
-	@objc private func trustSite() {
-		self.trustSiteButton.isSelected = !self.trustSiteButton.isSelected
-		if self.trustSiteButton.isSelected {
-			self.trustSiteButton.backgroundColor = UIColor(colorString: "9ECC42")
-		} else {
-			self.trustSiteButton.backgroundColor = UIColor.white
-		}
-		if self.restrictSiteButton.isSelected {
-			self.restrictSite()
-		}
-		// TODO: API Call
+	@objc private func trustSitePressed() {
+		setTrustSite(!self.trustSiteButton.isSelected)
+        
+        if self.trustSiteButton.isSelected {
+            self.delegate?.chageSiteState(to: .trusted)
+        }
+        else {
+            self.delegate?.chageSiteState(to: .none)
+        }
 	}
 
-	@objc private func restrictSite() {
-		self.restrictSiteButton.isSelected = !self.restrictSiteButton.isSelected
-		if self.restrictSiteButton.isSelected {
-			self.restrictSiteButton.backgroundColor = UIColor(colorString: "BE4948")
-		} else {
-			self.restrictSiteButton.backgroundColor = UIColor.white
-		}
-		if self.trustSiteButton.isSelected {
-			self.trustSite()
-		}
-		// TODO: API Call
+	@objc private func restrictSitePressed() {
+		setRestrictSite(!self.restrictSiteButton.isSelected)
+        
+        if self.restrictSiteButton.isSelected {
+            self.delegate?.chageSiteState(to: .restricted)
+        }
+        else {
+            self.delegate?.chageSiteState(to: .none)
+        }
 	}
+    
+    private func setTrustSite(_ value: Bool) {
+        self.trustSiteButton.isSelected = value
+        self.restrictSiteButton.isSelected = false
+        updateTrustSiteUI()
+        updateRestrictSiteUI()
+    }
+    
+    private func setRestrictSite(_ value: Bool) {
+        self.restrictSiteButton.isSelected = value
+        self.trustSiteButton.isSelected = false
+        updateTrustSiteUI()
+        updateRestrictSiteUI()
+    }
+    
+    private func updateTrustSiteUI() {
+        if self.trustSiteButton.isSelected {
+            self.trustSiteButton.backgroundColor = UIColor(colorString: "9ECC42")
+        } else {
+            self.trustSiteButton.backgroundColor = UIColor.white
+        }
+    }
+    
+    private func updateRestrictSiteUI() {
+        if self.restrictSiteButton.isSelected {
+            self.restrictSiteButton.backgroundColor = UIColor(colorString: "BE4948")
+        } else {
+            self.restrictSiteButton.backgroundColor = UIColor.white
+        }
+    }
 
 	private func setupPieChart() {
 		chart = PieChartView()

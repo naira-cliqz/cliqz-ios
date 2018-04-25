@@ -67,11 +67,11 @@ class DomainStore: NSObject {
     }
     
     class func changeState(domain: Domain, state: DomainState) {
-        domain.state = intForState(state: state)
         
         let realm = try! Realm()
         do {
             try realm.write {
+                domain.state = intForState(state: state)
                 realm.add(domain, update: true)
             }
         }
