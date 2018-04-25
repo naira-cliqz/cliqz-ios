@@ -147,9 +147,9 @@ class OverviewViewController: UIViewController {
 		dataSet.drawValuesEnabled = false
 		dataSet.iconsOffset = CGPoint(x: 0, y: 20.0)
 		dataSet.colors = [NSUIColor(colorString: "CB55CD"), NSUIColor(colorString: "87D7EF"), NSUIColor(colorString: "43B7C5"), NSUIColor(colorString: "FDC257"), NSUIColor(colorString: "EF671E")]
-		blockedTrackers.text = "\(self.dataSource?.totalTrackerCount() ?? 0) trackers blocked" // TODO: localize
+		blockedTrackers.text = "\(self.dataSource?.blockedTrackerCount() ?? 0) trackers blocked" // TODO: localize
 		chart?.data = PieChartData(dataSet: dataSet)
-		chart?.centerText = "\(self.dataSource?.totalTrackerCount() ?? 0) Trackers found" // TODO: localize
+		chart?.centerText = "\(self.dataSource?.detectedTrackerCount() ?? 0) Trackers found" // TODO: localize
 	}
 
 	private func setupComponents() {
