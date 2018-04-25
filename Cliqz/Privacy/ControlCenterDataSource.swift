@@ -24,12 +24,10 @@ protocol ControlCenterDSProtocol: class {
 
 class ControlCenterDataSource: ControlCenterDSProtocol {
     
-    let domainObj: Domain?
     let domainStr: String
     
     init(url: URL) {
         self.domainStr = url.normalizedHost ?? url.absoluteString
-        self.domainObj = DomainStore.get(domain: domainStr)
     }
     
     func trackersByCategory() -> Dictionary<String, [TrackerListApp]> {
@@ -54,16 +52,16 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     
     func blockedTrackerCount() -> Int {
         return TrackerList.instance.detectedTrackersForPage(self.domainStr).filter { (app) -> Bool in
-            if let domainO = domainObj {
-                return app.state.translatedState == .blocked || domainO.restrictedTrackers.contains(app.appId) //TODO: Make this more efficient. Lookup in the list is n.
+            if let domainObj = DomainStore.get(domain: self.domainStr) {
+                return app.state.translatedState == .blocked || domainObj.restrictedTrackers.contains(app.appId) //TODO: Make this more efficient. Lookup in the list is n.
             }
             return app.state.translatedState == .blocked
         }.count
     }
     
     func domainState() -> DomainState {
-        if let domain = domainObj {
-            return domain.translatedState
+        if let domainObj = DomainStore.get(domain: self.domainStr) {
+            return domainObj.translatedState
         }
         return .none //placeholder
     }

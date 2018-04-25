@@ -136,7 +136,7 @@ class DomainStore: NSObject {
 
 extension List where Element: Comparable {
     func remove(element: Element) {
-        for i in 0..<self.count {
+        for i in 0..<self.elements.count {
             let item = self[i]
             if item == element {
                 self.remove(at: i)
