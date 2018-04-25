@@ -13,7 +13,8 @@ protocol ControlCenterDSProtocol: class {
     func trackersByCategory() -> Dictionary<String, [TrackerListApp]>
     func globalTrackersByCategory() -> Dictionary<String, [TrackerListApp]>
     func countByCategory() -> Dictionary<String, Int>
-    func totalTrackerCount() -> Int
+    func detectedTrackerCount() -> Int
+    func blockedTrackerCount() -> Int
     func isGhosteryPaused() -> Bool
     func isGlobalAntitrackingOn() -> Bool
     func isGlobalAdblockerOn() -> Bool
@@ -47,8 +48,17 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
         return domainStr
     }
     
-    func totalTrackerCount() -> Int {
+    func detectedTrackerCount() -> Int {
         return TrackerList.instance.detectedTrackerCountForPage(self.domainStr)
+    }
+    
+    func blockedTrackerCount() -> Int {
+        return TrackerList.instance.detectedTrackersForPage(self.domainStr).filter { (app) -> Bool in
+            if let domainO = domainObj {
+                return app.state.translatedState == .blocked || domainO.restrictedTrackers.contains(app.appId) //TODO: Make this more efficient. Lookup in the list is n.
+            }
+            return app.state.translatedState == .blocked
+        }.count
     }
     
     func domainState() -> DomainState {
@@ -71,7 +81,7 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func antitrackingCount() -> Int {
-        return self.totalTrackerCount()
+        return self.blockedTrackerCount()
     }
     
     func adblockCount() -> Int {
