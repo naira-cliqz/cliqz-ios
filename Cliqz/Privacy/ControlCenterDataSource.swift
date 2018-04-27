@@ -15,6 +15,7 @@ protocol ControlCenterDSProtocol: class {
     func countByCategory() -> Dictionary<String, Int>
     func detectedTrackerCount() -> Int
     func blockedTrackerCount() -> Int
+    func domainState() -> DomainState
     func isGhosteryPaused() -> Bool
     func isGlobalAntitrackingOn() -> Bool
     func isGlobalAdblockerOn() -> Bool
@@ -51,12 +52,21 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func blockedTrackerCount() -> Int {
-        return TrackerList.instance.detectedTrackersForPage(self.domainStr).filter { (app) -> Bool in
-            if let domainObj = DomainStore.get(domain: self.domainStr) {
-                return app.state.translatedState == .blocked || domainObj.restrictedTrackers.contains(app.appId) //TODO: Make this more efficient. Lookup in the list is n.
-            }
-            return app.state.translatedState == .blocked
-        }.count
+        let domainS = domainState()
+        
+        if domainS == .restricted {
+            return detectedTrackerCount()
+        } else if domainS == .trusted {
+            return 0
+        }
+        else {
+            return TrackerList.instance.detectedTrackersForPage(self.domainStr).filter { (app) -> Bool in
+                if let domainObj = DomainStore.get(domain: self.domainStr) {
+                    return app.state.translatedState == .blocked || domainObj.restrictedTrackers.contains(app.appId) //TODO: Make this more efficient. Lookup in the list is n.
+                }
+                return app.state.translatedState == .blocked
+                }.count
+        }
     }
     
     func domainState() -> DomainState {

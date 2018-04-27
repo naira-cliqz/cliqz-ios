@@ -27,6 +27,11 @@ final class BlockListFileManager {
             return loadJson(path: path)
         }
         
+        //then look in the bundle
+        if let path = Bundle.main.path(forResource: forIdentifier, ofType: "json") {
+            return loadJson(path: path)
+        }
+        
         if ghosteryBlockDict == nil {
             ghosteryBlockDict = BlockListFileManager.parseGhosteryBlockList()
         }
@@ -36,11 +41,7 @@ final class BlockListFileManager {
             return json
         }
         
-        //then look in the bundle
-        if let path = Bundle.main.path(forResource: forIdentifier, ofType: "json") {
-            return loadJson(path: path)
-        }
-        
+        debugPrint("DISK: json not found for identifier = \(forIdentifier)")
         return nil
     }
     

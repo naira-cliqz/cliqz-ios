@@ -37,11 +37,12 @@ final class BlockListManager {
                     dispatchGroup.leave()
                 }
                 else {
-                    debugPrint("did not find list for identifier in store = \(id)")
+                    debugPrint("CACHE: did not find list for identifier = \(id)")
                     if blfm == nil {
                         blfm = BlockListFileManager()
                     }
                     if let json = blfm!.json(forIdentifier: id) {
+                        debugPrint("CACHE: will compile list for identifier = \(id)")
                         let operation = CompileOperation(identifier: id, json: json)
                         
                         operation.completionBlock = {
@@ -52,9 +53,6 @@ final class BlockListManager {
                         }
                         
                         self.loadQueue?.addOperation(operation)
-                    }
-                    else {
-                        debugPrint("json not found for identifier = \(id)")
                     }
                 }
             }
@@ -68,6 +66,7 @@ final class BlockListManager {
     private func handleOperationResult(result: CompileOperation.Result, id: String) -> WKContentRuleList? {
         switch result {
         case .list(let list):
+            debugPrint("finished loading list for id = \(id)")
             return list
         case .error(let error):
             debugPrint("error for id = \(id) | ERROR = \(error.debugDescription)")

@@ -22,7 +22,6 @@ let AllCategories = ["advertising": "Advertising",
 					 "uncategorized": "Uncategorized"
 ]
 
-
 let trackerViewDismissedNotification = Notification.Name(rawValue: "TrackerViewDismissed")
 
 struct ControlCenterUI {
@@ -113,10 +112,20 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
         // Configure the cell...
 		let c = self.categories[indexPath.section]
 		let tracker = self.dataSource?.trackersByCategory()[c]?[indexPath.row]
-		let state = tracker?.state.translatedState
-		if let state = tracker?.state.translatedState,
-			let name = tracker?.name,
-			state == .blocked || state == .restricted {
+        
+        let domainState = self.dataSource?.domainState()
+        let state: TrackerStateEnum //= self.dataSource?.domainState() == .restricted ? .restricted : (tracker?.state.translatedState ?? .none)
+        if domainState == .restricted {
+            state = .restricted
+        }
+        else if domainState == .trusted {
+            state = .trusted
+        }
+        else {
+            state = tracker?.state.translatedState ?? .none
+        }
+        
+		if let name = tracker?.name, state == .blocked || state == .restricted {
 			let str = NSMutableAttributedString(string: name)
 			str.addAttributes([NSStrikethroughStyleAttributeName : 1], range: NSMakeRange(0, name.count))
 			cell.textLabel?.attributedText = str
@@ -273,7 +282,9 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 				self.expandedSectionIndex = section
 			}
 			self.tableView.reloadSections(set, with: .fade)
-			self.tableView.scrollToRow(at: IndexPath(row: 0, section: section), at: .top, animated: false)
+			if set.count > 1 {
+				self.tableView.scrollToRow(at: IndexPath(row: 0, section: section), at: .top, animated: false)
+			}
 		}
 //		let eImageView = headerView.viewWithTag(kHeaderSectionTag + section) as? UIImageView
 //		if (self.expandedSectionHeaderNumber == -1) {
