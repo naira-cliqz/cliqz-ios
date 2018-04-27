@@ -9,12 +9,18 @@
 import Foundation
 import Charts
 
+protocol BlockedRequestViewDelegate: class {
+    func switchValueChanged(value: Bool)
+}
+
 class BlockedRequestsView: UIView {
 
 	private var iconView = UIImageView()
 	private var countView = UILabel()
 	private var titleView = UILabel()
 	private var switchControl = UISwitch()
+    
+    weak var delegate: BlockedRequestViewDelegate? = nil
 
 	var isSwitchOn: Bool? {
 		set {
@@ -67,6 +73,7 @@ class BlockedRequestsView: UIView {
 		switchControl.onTintColor = UIColor.cliqzBluePrimary
 		switchControl.thumbTintColor = UIColor.white
 		switchControl.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
+        switchControl.addTarget(self, action: #selector(switchValueChanged), for: .valueChanged)
 	}
 
 	override func layoutSubviews() {
@@ -92,6 +99,10 @@ class BlockedRequestsView: UIView {
 			make.right.equalTo(self).inset(10)
 		}
 	}
+    
+    @objc func switchValueChanged(s: UISwitch) {
+        s.isOn ? self.delegate?.switchValueChanged(value: true) : self.delegate?.switchValueChanged(value: false)
+    }
 }
 
 class OverviewViewController: UIViewController {
@@ -222,9 +233,10 @@ class OverviewViewController: UIViewController {
 
 
 		// TODO: Count should be from DataSource
+        self.adBlockingView.delegate = self
 		self.adBlockingView.count = 0
 		self.adBlockingView.title = NSLocalizedString("Enhanced Ad Blocking", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Ad blocking switch title")
-		self.adBlockingView.isSwitchOn = true
+		self.adBlockingView.isSwitchOn = self.dataSource?.isGlobalAdblockerOn()
 		self.adBlockingView.iconName = "adblocking"
 	}
 
@@ -332,4 +344,10 @@ class OverviewViewController: UIViewController {
 			make.height.equalTo(200)
 		}
 	}
+}
+
+extension OverviewViewController: BlockedRequestViewDelegate {
+    func switchValueChanged(value: Bool) {
+        self.delegate?.turnGlobalAdblocking(on: value)
+    }
 }

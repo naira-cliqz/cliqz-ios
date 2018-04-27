@@ -189,11 +189,11 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func isGlobalAntitrackingOn() -> Bool {
-        return UserPreferences.instance.blockingMode == .all
+        return UserPreferences.instance.antitrackingMode == .blockAll
     }
     
     func isGlobalAdblockerOn() -> Bool {
-        return true //placeholder
+        return UserPreferences.instance.adblockingMode == .blockAll
     }
     
     func antitrackingCount() -> Int {

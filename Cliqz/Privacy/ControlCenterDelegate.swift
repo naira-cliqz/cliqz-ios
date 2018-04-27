@@ -45,16 +45,22 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
     
     func turnGlobalAntitracking(on: Bool) {
         if on == true {
-            UserPreferences.instance.blockingMode = .all
+            UserPreferences.instance.antitrackingMode = .blockAll
         }
         else {
-            UserPreferences.instance.blockingMode = .notall
+            UserPreferences.instance.antitrackingMode = .blockSomeOrNone
         }
         UserPreferences.instance.writeToDisk()
     }
     
     func turnGlobalAdblocking(on: Bool) {
-        //to do
+        if on == true {
+            UserPreferences.instance.adblockingMode = .blockAll
+        }
+        else {
+            UserPreferences.instance.adblockingMode = .blockNone
+        }
+        UserPreferences.instance.writeToDisk()
     }
     
     func changeState(appId: Int, state: TrackerStateEnum) {
@@ -62,7 +68,7 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
             TrackerStateStore.change(trackerState: trakerListApp.state, toState: state)
             
             if state == .trusted {
-                UserPreferences.instance.blockingMode = .notall
+                UserPreferences.instance.antitrackingMode = .blockSomeOrNone
                 UserPreferences.instance.writeToDisk()
             }
             

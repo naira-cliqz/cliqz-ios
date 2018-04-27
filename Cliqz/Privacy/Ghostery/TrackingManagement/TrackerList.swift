@@ -477,14 +477,14 @@ let trackersLoadedNotification = Notification.Name(rawValue:"TrackersLoadedNotif
 
         blockSpecificTrackers(appList)
 
-        UserPreferences.instance.blockingMode = .all
+        UserPreferences.instance.antitrackingMode = .blockAll
         UserPreferences.instance.writeToDisk()
     }
 
     func unblockAllTrackers() {
         TrackerStore.shared.removeAll()
 
-        UserPreferences.instance.blockingMode = .notall
+        UserPreferences.instance.antitrackingMode = .blockSomeOrNone
         UserPreferences.instance.writeToDisk()
     }
 
@@ -495,7 +495,7 @@ let trackersLoadedNotification = Notification.Name(rawValue:"TrackersLoadedNotif
             TrackerStore.shared.add(member: tracker.appId)
         }
 
-        UserPreferences.instance.blockingMode = .notall
+        UserPreferences.instance.antitrackingMode = .blockSomeOrNone
         UserPreferences.instance.writeToDisk()
     }
     

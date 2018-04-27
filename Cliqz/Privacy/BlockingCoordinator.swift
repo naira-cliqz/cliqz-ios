@@ -13,7 +13,7 @@ final class BlockingCoordinator {
     private var isUpdating = false
     
     var isAdblockerOn: Bool {
-        return false
+        return UserPreferences.instance.adblockingMode == .blockAll
     }
     
     func isAntitrackingOn(domain: String?) -> Bool {
@@ -40,7 +40,7 @@ final class BlockingCoordinator {
     
     func identifiersForAntitracking(domain: String?) -> [String] {
         //logic what to load for antitracking
-        if UserPreferences.instance.blockingMode == .all {
+        if UserPreferences.instance.antitrackingMode == .blockAll {
             return BlockListIdentifiers.antitrackingBlockAllIdentifiers()
         }
         else {

@@ -9,31 +9,49 @@ import Foundation
 
 @objc open class UserPreferences : NSObject {
     
-    enum BlockingMode: Int {
-        case notall = 0 //something or nothing
-        case all = 1
+    enum AntitrackingMode: Int {
+        case blockSomeOrNone = 0 //something or nothing
+        case blockAll = 1
+    }
+    
+    enum AdblockingMode: Int {
+        case blockNone = 0
+        case blockAll = 1
     }
     
     static let instance = UserPreferences()
     
     let TrackerListVersionKey = "TrackerListVersion"
-    let BlockingModeKey = "BlockingMode"
-    //let BlockingEnabledKey = "BlockingEnabled"
+    let AntitrackingModeKey = "AntitrackingMode"
+    let AdblockingModeKey = "AdblockingMode"
     let BlockNewTrackersKey = "block_new_trackers_by_default"
     let HasRunBeforeKey = "NotFirstRun"
-    let CrashlyticsEnabledKey = "CrashlyticsEnabled"
     
-    var blockingMode: BlockingMode {
+    var antitrackingMode: AntitrackingMode {
         get {
-            if let mode = BlockingMode(rawValue: userDefaults().integer(forKey: BlockingModeKey)) {
+            if let mode = AntitrackingMode(rawValue: userDefaults().integer(forKey: AntitrackingModeKey)) {
                 return mode
             }
             else {
-                return .notall
+                return .blockSomeOrNone
             }
         }
         set {
-            userDefaults().set(newValue.rawValue, forKey: BlockingModeKey)
+            userDefaults().set(newValue.rawValue, forKey: AntitrackingModeKey)
+        }
+    }
+    
+    var adblockingMode: AdblockingMode {
+        get {
+            if let mode = AdblockingMode(rawValue: userDefaults().integer(forKey: AdblockingModeKey)) {
+                return mode
+            }
+            else {
+                return .blockNone
+            }
+        }
+        set {
+            userDefaults().set(newValue.rawValue, forKey: AdblockingModeKey)
         }
     }
     
@@ -72,14 +90,6 @@ import Foundation
     func setTrackerListVersion(_ value: NSNumber) {
         userDefaults().set(value.intValue, forKey: TrackerListVersionKey)
     }
-    
-    /*func setIsBlockingEnabled(value: Bool) {
-     userDefaults().setBool(value, forKey: IsBlockingEnabledKey)
-     }
-     
-     func isBlockingEnabled() -> Bool {
-     return userDefaults().boolForKey(IsBlockingEnabledKey)
-     }*/
     
     func setAreNewTrackersBlocked(_ value: Bool) {
         userDefaults().set(value, forKey: BlockNewTrackersKey)
