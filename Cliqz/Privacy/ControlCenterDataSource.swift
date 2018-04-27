@@ -8,10 +8,13 @@
 
 import UIKit
 
+enum TableType {
+    case page
+    case global
+}
+
 protocol ControlCenterDSProtocol: class {
     func domainString() -> String
-    func trackersByCategory() -> Dictionary<String, [TrackerListApp]>
-    func globalTrackersByCategory() -> Dictionary<String, [TrackerListApp]>
     func countByCategory() -> Dictionary<String, Int>
     func detectedTrackerCount() -> Int
     func blockedTrackerCount() -> Int
@@ -21,11 +24,22 @@ protocol ControlCenterDSProtocol: class {
     func isGlobalAdblockerOn() -> Bool
     func antitrackingCount() -> Int
     func adblockCount() -> Int
+    
+    func numberOfSections(tableType: TableType) -> Int
+    func numberOfRows(tableType: TableType, section: Int) -> Int
+    func title(tableType: TableType, section: Int) -> String
+    func image(tableType: TableType, section: Int) -> UIImage?
+    func trackerCount(tableType: TableType, section: Int) -> Int
+    func blockedTrackerCount(tableType: TableType, section: Int) -> Int
+    func title(tableType: TableType, indexPath: IndexPath) -> String?
+    func attributedTitle(tableType: TableType, indexPath: IndexPath) -> NSMutableAttributedString?
+    func stateIcon(tableType: TableType, indexPath: IndexPath) -> UIImage?
+    func appId(tableType: TableType, indexPath: IndexPath) -> Int
 }
 
 class ControlCenterDataSource: ControlCenterDSProtocol {
     
-    let allCategories = ["advertising": "Advertising",
+    let category2Name = ["advertising": "Advertising",
                          "audio_video_player": "Audio/Video Player",
                          "comments": "Comments",
                          "customer_interaction": "Customer Interaction",
@@ -36,12 +50,8 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
                          "uncategorized": "Uncategorized"
     ]
     
-    let categories = ["advertising", "audio_video_player", "comments", "essential", "pornvertising", "site_analytics", "social_media", "uncategorized"]
-    
-    enum TableType {
-        case page
-        case global
-    }
+    let pageCategories: [String]
+    let globalCategories: [String]
     
     let domainStr: String
     let pageTrackers: Dictionary<String, [TrackerListApp]>
@@ -51,35 +61,9 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     init(url: URL) {
         self.domainStr = url.normalizedHost ?? url.absoluteString
         self.pageTrackers = TrackerList.instance.trackersByCategory(for: self.domainStr)
+        self.pageCategories = Array(self.pageTrackers.keys)
         self.globalTrackers = TrackerList.instance.trackersByCategory()
-    }
-    
-    func source(_ tableType: TableType) -> Dictionary<String, [TrackerListApp]> {
-        if tableType == .page {
-            return self.pageTrackers
-        }
-        
-        return self.globalTrackers
-    }
-    
-    func trackers(tableType: TableType, category: String) -> [TrackerListApp] {
-        return source(tableType)[category] ?? []
-    }
-    
-    func tracker(tableType: TableType, indexPath: IndexPath) -> TrackerListApp? {
-        let (section, row) = sectionAndRow(indexPath: indexPath)
-        let t = trackers(tableType: tableType, category: category(section))
-        guard t.isIndexValid(index: row) else { return nil }
-        return t[row]
-    }
-    
-    func category(_ section: Int) -> String {
-        guard categories.isIndexValid(index: section) else { return "" }
-        return categories[section]
-    }
-    
-    func sectionAndRow(indexPath: IndexPath) -> (Int, Int) {
-        return (indexPath.section, indexPath.row)
+        self.globalCategories = Array(self.globalTrackers.keys)
     }
     
     //Section
@@ -88,15 +72,15 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func numberOfRows(tableType: TableType, section: Int) -> Int {
-        return trackers(tableType: tableType, category: category(section)).count
+        return trackers(tableType: tableType, category: category(tableType, section)).count
     }
     
     func title(tableType: TableType, section: Int) -> String {
-        return allCategories[category(section)] ?? ""
+        return category2Name[category(tableType, section)] ?? ""
     }
     
     func image(tableType: TableType, section: Int) -> UIImage? {
-        return UIImage(named: category(section))
+        return UIImage(named: category(tableType, section))
     }
  
     func trackerCount(tableType: TableType, section: Int) -> Int {
@@ -104,7 +88,7 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func blockedTrackerCount(tableType: TableType, section: Int) -> Int {
-        return trackers(tableType: tableType, category: category(section)).filter({ (app) -> Bool in
+        return trackers(tableType: tableType, category: category(tableType, section)).filter({ (app) -> Bool in
             let translatedState = app.state.translatedState
             return translatedState == .blocked || translatedState == .restricted
         }).count
@@ -141,13 +125,13 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
         let domainState = self.domainState()
         
         if domainState == .restricted {
-            return UIImage(named: iconForTrackerState(state: .restricted))
+            return iconForTrackerState(state: .restricted)
         }
         else if domainState == .trusted {
-            return UIImage(named: iconForTrackerState(state: .trusted))
+            return iconForTrackerState(state: .trusted)
         }
         
-        return UIImage(named: iconForTrackerState(state: t.state.translatedState))
+        return iconForTrackerState(state: t.state.translatedState)
     }
     
     func appId(tableType: TableType, indexPath: IndexPath) -> Int {
@@ -219,21 +203,61 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     func adblockCount() -> Int {
         return 0 //placeholder
     }
+}
+
+// MARK: - Helpers
+extension ControlCenterDataSource {
     
-    private func iconForTrackerState(state: TrackerStateEnum?) -> String {
+    fileprivate func source(_ tableType: TableType) -> Dictionary<String, [TrackerListApp]> {
+        if tableType == .page {
+            return self.pageTrackers
+        }
+        
+        return self.globalTrackers
+    }
+    
+    fileprivate func trackers(tableType: TableType, category: String) -> [TrackerListApp] {
+        return source(tableType)[category] ?? []
+    }
+    
+    fileprivate func tracker(tableType: TableType, indexPath: IndexPath) -> TrackerListApp? {
+        let (section, row) = sectionAndRow(indexPath: indexPath)
+        let t = trackers(tableType: tableType, category: category(tableType, section))
+        guard t.isIndexValid(index: row) else { return nil }
+        return t[row]
+    }
+    
+    fileprivate func category(_ tableType: TableType, _ section: Int) -> String {
+        let categories: [String]
+        if tableType == .page {
+            categories = self.pageCategories
+        }
+        else {
+            categories = self.globalCategories
+        }
+        
+        guard categories.isIndexValid(index: section) else { return "" }
+        return categories[section]
+    }
+    
+    fileprivate func sectionAndRow(indexPath: IndexPath) -> (Int, Int) {
+        return (indexPath.section, indexPath.row)
+    }
+    
+    fileprivate func iconForTrackerState(state: TrackerStateEnum?) -> UIImage? {
         if let state = state {
             switch state {
             case .none:
-                return ""
+                return nil
             case .blocked:
-                return "blockTracker"
+                return UIImage(named: "blockTracker")
             case .restricted:
-                return "restrictTracker"
+                return UIImage(named: "restrictTracker")
             case .trusted:
-                return "trustTracker"
+                return UIImage(named: "trustTracker")
             }
         }
-        return ""
+        return nil
     }
 }
 

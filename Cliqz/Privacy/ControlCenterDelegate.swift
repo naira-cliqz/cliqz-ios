@@ -61,6 +61,11 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
         if let trakerListApp = TrackerList.instance.apps[appId] {
             TrackerStateStore.change(trackerState: trakerListApp.state, toState: state)
             
+            if state == .trusted {
+                UserPreferences.instance.blockingMode = .notall
+                UserPreferences.instance.writeToDisk()
+            }
+            
             let domainObj = getOrCreateDomain()
             if state == .trusted {
                 //add it to trusted sites
