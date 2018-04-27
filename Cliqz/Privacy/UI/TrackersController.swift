@@ -76,7 +76,10 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.dataSource?.numberOfRows(tableType: .page, section: section) ?? 0
+		if self.expandedSectionIndex == section {
+			return self.dataSource?.numberOfRows(tableType: .page, section: section) ?? 0
+		}
+        return 0
     }
 
 	func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -95,7 +98,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
         else {
             cell.textLabel?.text = ""
         }
-        
+
 		cell.textLabel?.font = UIFont.systemFont(ofSize: 16)
 		cell.textLabel?.textColor = UIColor(colorString: "C7C7CD")
         cell.appId = self.dataSource?.appId(tableType: .page, indexPath: indexPath) ?? -1
@@ -127,7 +130,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 		let descLbl = UILabel()
         let trackersCount = self.dataSource?.trackerCount(tableType: .page, section: section) ?? 0
         let blockedCount = self.dataSource?.blockedTrackerCount(tableType: .page, section: section) ?? 0
-		descLbl.text = "\(trackersCount) TRACKERS \(blockedCount) Blocked"
+		descLbl.text = String(format: NSLocalizedString("%d TRACKERS %d Blocked", tableName: "Cliqz", comment: "[ControlCenter -> Trackers] Detected and Blocked trackers count"), trackersCount, blockedCount)
 		descLbl.font = UIFont.systemFont(ofSize: 12)
 		descLbl.textColor = ControlCenterUI.separatorGray
 		header.addSubview(descLbl)
@@ -153,7 +156,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 
 	func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
 		let sep = UIView()
-		sep.backgroundColor = UIColor.gray
+		sep.backgroundColor = ControlCenterUI.separatorGray
 		return sep
 	}
 
@@ -222,19 +225,6 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 				self.tableView.scrollToRow(at: IndexPath(row: 0, section: section), at: .top, animated: false)
 			}
 		}
-//		let eImageView = headerView.viewWithTag(kHeaderSectionTag + section) as? UIImageView
-//		if (self.expandedSectionHeaderNumber == -1) {
-//			self.expandedSectionHeaderNumber = section
-//			tableViewExpandSection(section, imageView: eImageView!)
-//		} else {
-//			if (self.expandedSectionHeaderNumber == section) {
-//				tableViewCollapeSection(section, imageView: eImageView!)
-//			} else {
-//				let cImageView = self.view.viewWithTag(kHeaderSectionTag + self.expandedSectionHeaderNumber) as? UIImageView
-//				tableViewCollapeSection(self.expandedSectionHeaderNumber, imageView: cImageView!)
-//				tableViewExpandSection(section, imageView: eImageView!)
-//			}
-//		}
 	}
 }
 

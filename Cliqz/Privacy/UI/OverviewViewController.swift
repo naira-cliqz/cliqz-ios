@@ -150,7 +150,14 @@ class OverviewViewController: UIViewController {
 		dataSet.colors = [NSUIColor(colorString: "CB55CD"), NSUIColor(colorString: "87D7EF"), NSUIColor(colorString: "43B7C5"), NSUIColor(colorString: "FDC257"), NSUIColor(colorString: "EF671E")]
 		blockedTrackers.text = String(format: NSLocalizedString("%d Trackers Blocked", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Blocked trackers count"), self.dataSource?.blockedTrackerCount() ?? 0)
 		chart?.data = PieChartData(dataSet: dataSet)
-		chart?.centerText = "\(self.dataSource?.detectedTrackerCount() ?? 0) Trackers found" // TODO: localize
+		chart?.centerText = String(format: NSLocalizedString("%d Trackers found", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Detected trackers count"), self.dataSource?.detectedTrackerCount() ?? 0)
+		let domainState = self.dataSource?.domainState()
+		if domainState == .trusted {
+			setTrustSite(true)
+		} else if domainState == .restricted {
+			setRestrictSite(true)
+		}
+		self.pauseGhosteryButton.isSelected = self.dataSource?.isGhosteryPaused() ?? false
 	}
 
 	private func setupComponents() {
@@ -260,17 +267,11 @@ class OverviewViewController: UIViewController {
 		self.pauseGhosteryButton.layer.cornerRadius = 3
 		self.pauseGhosteryButton.setTitleColor(UIColor.gray, for: .normal)
         
-        let domainState = self.dataSource?.domainState()
-        if domainState == .trusted {
-            setTrustSite(true)
-        } else if domainState == .restricted {
-            setRestrictSite(true)
-        }
 	}
 
 	@objc private func trustSitePressed() {
 		setTrustSite(!self.trustSiteButton.isSelected)
-        
+
         if self.trustSiteButton.isSelected {
             self.delegate?.chageSiteState(to: .trusted)
         }
