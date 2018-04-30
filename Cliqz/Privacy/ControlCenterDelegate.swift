@@ -14,7 +14,7 @@ protocol ControlCenterDelegateProtocol: class {
     func turnGlobalAntitracking(on: Bool)
     func turnGlobalAdblocking(on: Bool)
     func changeState(appId: Int, state: TrackerStateEnum)
-	func changeState(category: String, state: TrackerStateEnum)
+    func changeState(category: String, tableType: TableType, state: TrackerStateEnum)
 }
 
 class ControlCenterDelegate: ControlCenterDelegateProtocol {
@@ -35,8 +35,24 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
         }
     }
 
-	func changeState(category: String, state: TrackerStateEnum) {
-		// TODO:...
+    func changeState(category: String, tableType: TableType, state: TrackerStateEnum) {
+        
+        let trackers: [Int]
+        if tableType == .page {
+            trackers = (TrackerList.instance.trackersByCategory(domain: domainStr)[category] ?? []).map({ (app) -> Int in
+                return app.appId
+            })
+        }
+        else {
+            trackers = (TrackerList.instance.trackersByCategory()[category] ?? []).map({ (app) -> Int in
+                return app.appId
+            })
+        }
+        
+        trackers.forEach { (appId) in
+            self.changeState(appId: appId, state: state)
+        }
+        
 	}
 
     func chageSiteState(to: DomainState) {

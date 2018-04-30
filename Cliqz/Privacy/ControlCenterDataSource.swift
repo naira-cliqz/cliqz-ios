@@ -269,14 +269,6 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
 // MARK: - Helpers
 extension ControlCenterDataSource {
     
-    fileprivate func trackersByCategory() -> Dictionary<String, [TrackerListApp]> {
-        return TrackerList.instance.trackersByCategory(for: self.domainStr)
-    }
-    
-    fileprivate func globalTrackersByCategory() -> Dictionary<String, [TrackerListApp]> {
-        return TrackerList.instance.trackersByCategory()
-    }
-    
     fileprivate func source(_ tableType: TableType) -> Dictionary<String, [TrackerListApp]> {
         if tableType == .page {
             return self.pageTrackers
@@ -327,7 +319,7 @@ extension ControlCenterDataSource {
                 return UIImage(named: "restrictTracker")
             case .trusted:
                 return UIImage(named: "trustTracker")
-            default:
+            case .other:
                 return nil //should be the minus image
             }
         }

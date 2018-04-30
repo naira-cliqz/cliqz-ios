@@ -523,6 +523,16 @@ let trackersLoadedNotification = Notification.Name(rawValue:"TrackersLoadedNotif
     }
     
     //Cliqz
+    
+    func trackersByCategory(domain: String) -> Dictionary<String, [TrackerListApp]> {
+        return self.trackersByCategory(for: domain)
+    }
+    
+    func globalTrackersByCategory() -> Dictionary<String, [TrackerListApp]> {
+        return self.trackersByCategory()
+    }
+    
+    //This can be optimized with a cache
     func trackersByCategory(for domain: String? = nil) -> Dictionary<String, [TrackerListApp]> {
         let list: [TrackerListApp]
         
