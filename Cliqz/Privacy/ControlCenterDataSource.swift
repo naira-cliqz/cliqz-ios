@@ -34,6 +34,7 @@ protocol ControlCenterDSProtocol: class {
     func title(tableType: TableType, indexPath: IndexPath) -> String?
     func attributedTitle(tableType: TableType, indexPath: IndexPath) -> NSMutableAttributedString?
     func stateIcon(tableType: TableType, indexPath: IndexPath) -> UIImage?
+	func stateIcon(tableType: TableType, section: Int) -> UIImage?
     func appId(tableType: TableType, indexPath: IndexPath) -> Int
 }
 
@@ -67,6 +68,11 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     //Section
+
+	func stateIcon(tableType: TableType, section: Int) -> UIImage? {
+		return nil
+	}
+
     func numberOfSections(tableType: TableType) -> Int {
         return source(tableType).keys.count
     }

@@ -46,7 +46,9 @@ class TrackersController: UIViewController {
     }
 
 	private func setupComponents() {
-		self.tableView.tableHeaderView = CategoriesHeaderView()
+		let headerView = CategoriesHeaderView()
+		headerView.addTarget(self, action: #selector(showActionSheet), for: .touchUpInside)
+		self.tableView.tableHeaderView = headerView
 		self.tableView.tableHeaderView?.frame = CGRect(x: 0, y: 0, width: self.tableView.frame.size.width, height: 80)
 		self.tableView.tableHeaderView?.snp.makeConstraints { (make) in
 			make.top.left.equalToSuperview()
@@ -65,6 +67,31 @@ class TrackersController: UIViewController {
 
 	private func updateData() {
 		self.tableView.reloadData()
+	}
+
+	@objc private func showActionSheet() {
+		let blockTrustAlertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+		let blockAll = UIAlertAction(title: NSLocalizedString("Block All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Block All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
+				self?.blockAllCategories()
+		})
+		blockTrustAlertController.addAction(blockAll)
+		let trustAll = UIAlertAction(title: NSLocalizedString("Trust All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Trust All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
+				self?.trustAllCategories()
+		})
+		blockTrustAlertController.addAction(trustAll)
+
+		let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Cancel action title"), style: .cancel)
+		blockTrustAlertController.addAction(cancelAction)
+		self.present(blockTrustAlertController, animated: true, completion: nil)
+	}
+
+	private func blockAllCategories() {
+		
+	}
+
+	private func trustAllCategories() {
+		
 	}
 }
 
@@ -146,7 +173,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 			make.centerY.equalToSuperview()
 			make.right.equalToSuperview().offset(10)
 		}
-		// E0E0E0 separator
+		statusIcon.image = self.dataSource?.image(tableType: .page, section: section)
 		header.tag = section
 		let headerTapGesture = UITapGestureRecognizer()
 		headerTapGesture.addTarget(self, action: #selector(sectionHeaderTapped(_:)))
@@ -171,7 +198,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
         let restrictAction = UIContextualAction(style: .destructive, title: "Restrict") { (action, view, complHandler) in
 			print("Restrict")
 			self.delegate?.changeState(appId: appId, state: .restricted)
-            
+
             tableView.beginUpdates()
             self.tableView.reloadRows(at: [indexPath], with: .none)
             tableView.endUpdates()
@@ -180,7 +207,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 		let blockAction = UIContextualAction(style: .destructive, title: "Block") { (action, view, complHandler) in
 			print("Block")
 			self.delegate?.changeState(appId: appId, state: .blocked)
-            
+
             tableView.beginUpdates()
             self.tableView.reloadRows(at: [indexPath], with: .none)
             tableView.endUpdates()
@@ -189,13 +216,13 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 		let trustAction = UIContextualAction(style: .normal, title: "Trust") { (action, view, complHandler) in
 			print("Trust")
 			self.delegate?.changeState(appId: appId, state: .trusted)
-            
+
             tableView.beginUpdates()
             self.tableView.reloadRows(at: [indexPath], with: .none)
             tableView.endUpdates()
             complHandler(false)
 		}
-        
+
 		trustAction.backgroundColor = UIColor(colorString: "9ECC42")
 		blockAction.backgroundColor = UIColor(colorString: "E74055")
 		restrictAction.backgroundColor = UIColor(colorString: "BE4948")
@@ -245,7 +272,7 @@ class CustomCell: UITableViewCell {
 			make.centerY.equalToSuperview()
 		}
     }
-	
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -261,6 +288,7 @@ class CategoriesHeaderView: UIControl {
 		self.addSubview(categoriesLabel)
 		categoriesLabel.text = NSLocalizedString("Categories", tableName: "Cliqz", comment: "[Trackers -> ControlCenter] Trackers Title")
 		self.addSubview(actionButton)
+		actionButton.setImage(UIImage(named: "more"), for: .normal)
 		self.addSubview(separator)
 		setStyles()
 	}
@@ -286,7 +314,7 @@ class CategoriesHeaderView: UIControl {
 		self.actionButton.snp.remakeConstraints { (make) in
 			make.left.equalTo(categoriesLabel.snp.right).offset(10)
 			make.top.bottom.equalToSuperview()
-			make.right.equalToSuperview().offset(10)
+			make.right.equalToSuperview().inset(15)
 		}
 		self.separator.snp.remakeConstraints { (make) in
 			make.left.right.bottom.equalToSuperview()

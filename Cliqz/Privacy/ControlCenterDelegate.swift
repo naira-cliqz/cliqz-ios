@@ -14,6 +14,7 @@ protocol ControlCenterDelegateProtocol: class {
     func turnGlobalAntitracking(on: Bool)
     func turnGlobalAdblocking(on: Bool)
     func changeState(appId: Int, state: TrackerStateEnum)
+	func changeState(category: String, state: TrackerStateEnum)
 }
 
 class ControlCenterDelegate: ControlCenterDelegateProtocol {
@@ -33,7 +34,11 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
             return DomainStore.create(domain: self.domainStr)
         }
     }
-    
+
+	func changeState(category: String, state: TrackerStateEnum) {
+		// TODO:...
+	}
+
     func chageSiteState(to: DomainState) {
         let domainObj: Domain
         domainObj = getOrCreateDomain()
