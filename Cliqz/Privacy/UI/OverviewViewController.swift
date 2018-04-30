@@ -168,7 +168,7 @@ class OverviewViewController: UIViewController {
 		} else if domainState == .restricted {
 			setRestrictSite(true)
 		}
-		self.pauseGhosteryButton.isSelected = self.dataSource?.isGhosteryPaused() ?? false
+		setPauseGhostery(self.dataSource?.isGhosteryPaused() ?? false)
 	}
 
 	private func setupComponents() {
@@ -230,6 +230,7 @@ class OverviewViewController: UIViewController {
 
 		let pauseGhostery = NSLocalizedString("Pause Ghostery", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Pause Ghostery button title")
 		self.pauseGhosteryButton.setTitle(pauseGhostery, for: .normal)
+        self.pauseGhosteryButton.addTarget(self, action: #selector(pauseGhosteryPressed), for: .touchUpInside)
 
 
 		// TODO: Count should be from DataSource
@@ -280,28 +281,26 @@ class OverviewViewController: UIViewController {
 		self.pauseGhosteryButton.setTitleColor(UIColor.gray, for: .normal)
         
 	}
+    
+    @objc private func pauseGhosteryPressed() {
+        setPauseGhostery(!self.pauseGhosteryButton.isSelected)
+        self.pauseGhosteryButton.isSelected ? self.delegate?.pauseGhostery(paused: true) : self.delegate?.pauseGhostery(paused: false)
+    }
 
 	@objc private func trustSitePressed() {
 		setTrustSite(!self.trustSiteButton.isSelected)
-
-        if self.trustSiteButton.isSelected {
-            self.delegate?.chageSiteState(to: .trusted)
-        }
-        else {
-            self.delegate?.chageSiteState(to: .none)
-        }
+        self.trustSiteButton.isSelected ? self.delegate?.chageSiteState(to: .trusted) : self.delegate?.chageSiteState(to: .none)
 	}
 
 	@objc private func restrictSitePressed() {
 		setRestrictSite(!self.restrictSiteButton.isSelected)
-        
-        if self.restrictSiteButton.isSelected {
-            self.delegate?.chageSiteState(to: .restricted)
-        }
-        else {
-            self.delegate?.chageSiteState(to: .none)
-        }
+        self.restrictSiteButton.isSelected ? self.delegate?.chageSiteState(to: .restricted) : self.delegate?.chageSiteState(to: .none)
 	}
+    
+    private func setPauseGhostery(_ value: Bool) {
+        self.pauseGhosteryButton.isSelected = value
+        updatePauseGhosteryUI()
+    }
     
     private func setTrustSite(_ value: Bool) {
         self.trustSiteButton.isSelected = value
@@ -315,6 +314,15 @@ class OverviewViewController: UIViewController {
         self.trustSiteButton.isSelected = false
         updateTrustSiteUI()
         updateRestrictSiteUI()
+    }
+    
+    private func updatePauseGhosteryUI() {
+        if self.pauseGhosteryButton.isSelected {
+            self.pauseGhosteryButton.backgroundColor = UIColor(colorString: "9ECC42")
+        }
+        else {
+            self.pauseGhosteryButton.backgroundColor = UIColor.white
+        }
     }
     
     private func updateTrustSiteUI() {
