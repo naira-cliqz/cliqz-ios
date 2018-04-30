@@ -19,11 +19,17 @@ import Foundation
         case blockAll = 1
     }
     
+    enum PauseGhosteryMode: Int {
+        case notPaused = 0
+        case paused = 1
+    }
+    
     static let instance = UserPreferences()
     
     let TrackerListVersionKey = "TrackerListVersion"
     let AntitrackingModeKey = "AntitrackingMode"
     let AdblockingModeKey = "AdblockingMode"
+    let PauseGhosteryModeKey = "PauseGhosteryMode"
     let BlockNewTrackersKey = "block_new_trackers_by_default"
     let HasRunBeforeKey = "NotFirstRun"
     
@@ -52,6 +58,20 @@ import Foundation
         }
         set {
             userDefaults().set(newValue.rawValue, forKey: AdblockingModeKey)
+        }
+    }
+    
+    var pauseGhosteryMode: PauseGhosteryMode {
+        get {
+            if let mode = PauseGhosteryMode(rawValue: userDefaults().integer(forKey: PauseGhosteryModeKey)) {
+                return mode
+            }
+            else {
+                return .notPaused
+            }
+        }
+        set {
+            userDefaults().set(newValue.rawValue, forKey: PauseGhosteryModeKey)
         }
     }
     

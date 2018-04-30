@@ -14,6 +14,7 @@ enum TableType {
 }
 
 protocol ControlCenterDSProtocol: class {
+    
     func domainString() -> String
     func countByCategory() -> Dictionary<String, Int>
     func detectedTrackerCount() -> Int
@@ -23,7 +24,6 @@ protocol ControlCenterDSProtocol: class {
     func isGlobalAntitrackingOn() -> Bool
     func isGlobalAdblockerOn() -> Bool
     func antitrackingCount() -> Int
-    func adblockCount() -> Int
     
     func numberOfSections(tableType: TableType) -> Int
     func numberOfRows(tableType: TableType, section: Int) -> Int
@@ -185,7 +185,7 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func isGhosteryPaused() -> Bool {
-        return false //placeholder
+        return UserPreferences.instance.pauseGhosteryMode == .paused
     }
     
     func isGlobalAntitrackingOn() -> Bool {
@@ -198,10 +198,6 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     
     func antitrackingCount() -> Int {
         return self.blockedTrackerCount()
-    }
-    
-    func adblockCount() -> Int {
-        return 0 //placeholder
     }
 }
 

@@ -10,13 +10,14 @@ import UIKit
 
 protocol ControlCenterDelegateProtocol: class {
     func chageSiteState(to: DomainState)
-    func pauseGhostery()
+    func pauseGhostery(paused: Bool)
     func turnGlobalAntitracking(on: Bool)
     func turnGlobalAdblocking(on: Bool)
     func changeState(appId: Int, state: TrackerStateEnum)
 }
 
 class ControlCenterDelegate: ControlCenterDelegateProtocol {
+    
     let domainStr: String
     
     init(url: URL) {
@@ -39,27 +40,18 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
         DomainStore.changeState(domain: domainObj, state: to)
     }
     
-    func pauseGhostery() {
-        //dunno
+    func pauseGhostery(paused: Bool) {
+        paused ? UserPreferences.instance.pauseGhosteryMode = .paused : (UserPreferences.instance.pauseGhosteryMode = .notPaused)
+        UserPreferences.instance.writeToDisk()
     }
     
     func turnGlobalAntitracking(on: Bool) {
-        if on == true {
-            UserPreferences.instance.antitrackingMode = .blockAll
-        }
-        else {
-            UserPreferences.instance.antitrackingMode = .blockSomeOrNone
-        }
+        on ? UserPreferences.instance.antitrackingMode = .blockAll : (UserPreferences.instance.antitrackingMode = .blockSomeOrNone)
         UserPreferences.instance.writeToDisk()
     }
     
     func turnGlobalAdblocking(on: Bool) {
-        if on == true {
-            UserPreferences.instance.adblockingMode = .blockAll
-        }
-        else {
-            UserPreferences.instance.adblockingMode = .blockNone
-        }
+        on ? UserPreferences.instance.adblockingMode = .blockAll : (UserPreferences.instance.adblockingMode = .blockNone)
         UserPreferences.instance.writeToDisk()
     }
     

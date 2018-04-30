@@ -17,9 +17,11 @@ final class BlockingCoordinator {
     }
     
     func isAntitrackingOn(domain: String?) -> Bool {
-        //logic if I load the antitracking
-        //when can this be off?
-        //when the site is trusted
+        
+        if UserPreferences.instance.pauseGhosteryMode == .paused {
+            return false
+        }
+        
         if let domainStr = domain, let domainObj = DomainStore.get(domain: domainStr) {
             return !(domainObj.translatedState == .trusted)
         }
