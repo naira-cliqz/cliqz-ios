@@ -3449,6 +3449,7 @@
 		AF6FA95E20652C1100D7F9F0 /* Privacy */ = {
 			isa = PBXGroup;
 			children = (
+				AF6FA98420652D4600D7F9F0 /* UserPreferences.swift */,
 				AF6FA99420652DF200D7F9F0 /* PersistentSet.swift */,
 				AFA1DE0F2088D59400B27B8A /* BlockingCoordinator.swift */,
 				AF6FA97820652C8F00D7F9F0 /* URLInterceptor.swift */,
@@ -3496,7 +3497,6 @@
 				AF6FA97E20652D4500D7F9F0 /* TrackerListRegex.swift */,
 				AF6FA98620652D4600D7F9F0 /* TrackerStore.swift */,
 				AF6FA98720652D4600D7F9F0 /* TrieNode.swift */,
-				AF6FA98420652D4600D7F9F0 /* UserPreferences.swift */,
 			);
 			path = TrackingManagement;
 			sourceTree = "<group>";
