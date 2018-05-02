@@ -481,6 +481,9 @@
 		AF6FA99120652D4600D7F9F0 /* TrackerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6FA98620652D4600D7F9F0 /* TrackerStore.swift */; };
 		AF6FA99220652D4600D7F9F0 /* TrieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6FA98720652D4600D7F9F0 /* TrieNode.swift */; };
 		AF6FA99520652DF200D7F9F0 /* PersistentSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6FA99420652DF200D7F9F0 /* PersistentSet.swift */; };
+		AF77B88C2099FFC300E7A0C4 /* AntiPhishingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF77B88B2099FFC300E7A0C4 /* AntiPhishingDetector.swift */; };
+		AF77B88E209A022A00E7A0C4 /* NSData+GZIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF77B88D209A022A00E7A0C4 /* NSData+GZIP.swift */; };
+		AF77B890209A05E200E7A0C4 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF77B88F209A05E200E7A0C4 /* ConnectionManager.swift */; };
 		AF7FDDBC205949AA00AA2280 /* ExpandableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7FDDAD205949A900AA2280 /* ExpandableView.swift */; };
 		AF99C8A2206935F0009404FF /* GhosteryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF99C8A1206935F0009404FF /* GhosteryButton.swift */; };
 		AFA1DE072088AF9600B27B8A /* AdBlocker in Resources */ = {isa = PBXBuildFile; fileRef = AFA1DDF82088AF9600B27B8A /* AdBlocker */; };
@@ -1919,6 +1922,9 @@
 		AF6FA98620652D4600D7F9F0 /* TrackerStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrackerStore.swift; sourceTree = "<group>"; };
 		AF6FA98720652D4600D7F9F0 /* TrieNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrieNode.swift; sourceTree = "<group>"; };
 		AF6FA99420652DF200D7F9F0 /* PersistentSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PersistentSet.swift; path = Cliqz/Privacy/PersistentSet.swift; sourceTree = SOURCE_ROOT; };
+		AF77B88B2099FFC300E7A0C4 /* AntiPhishingDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AntiPhishingDetector.swift; sourceTree = "<group>"; };
+		AF77B88D209A022A00E7A0C4 /* NSData+GZIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSData+GZIP.swift"; sourceTree = "<group>"; };
+		AF77B88F209A05E200E7A0C4 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		AF7FDDAD205949A900AA2280 /* ExpandableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpandableView.swift; sourceTree = "<group>"; };
 		AF99C8A1206935F0009404FF /* GhosteryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhosteryButton.swift; sourceTree = "<group>"; };
 		AFA1DDF82088AF9600B27B8A /* AdBlocker */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AdBlocker; sourceTree = "<group>"; };
@@ -3210,6 +3216,7 @@
 				1EEA36D62063F87C003B6AD5 /* URLExtension.swift */,
 				AFA9FACB208DFD790028CA1B /* ArrayExtensions.swift */,
 				AFA9FB0A208E04FA0028CA1B /* DictionaryExtensions.swift */,
+				AF77B88D209A022A00E7A0C4 /* NSData+GZIP.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -3455,6 +3462,7 @@
 				AF6FA97820652C8F00D7F9F0 /* URLInterceptor.swift */,
 				AFA9FAC9208DFA120028CA1B /* ControlCenterDataSource.swift */,
 				AFA9FB0C208E135E0028CA1B /* ControlCenterDelegate.swift */,
+				AF77B87C2099FF9F00E7A0C4 /* Anti-Phishing */,
 				AFA9FAC8208DF9500028CA1B /* Store */,
 				AFA1DE082088BDA600B27B8A /* BlockListManager */,
 				AF6FA97C20652D1F00D7F9F0 /* Ghostery */,
@@ -3499,6 +3507,15 @@
 				AF6FA98720652D4600D7F9F0 /* TrieNode.swift */,
 			);
 			path = TrackingManagement;
+			sourceTree = "<group>";
+		};
+		AF77B87C2099FF9F00E7A0C4 /* Anti-Phishing */ = {
+			isa = PBXGroup;
+			children = (
+				AF77B88B2099FFC300E7A0C4 /* AntiPhishingDetector.swift */,
+				AF77B88F209A05E200E7A0C4 /* ConnectionManager.swift */,
+			);
+			path = "Anti-Phishing";
 			sourceTree = "<group>";
 		};
 		AF99C8B120693627009404FF /* UI */ = {
@@ -6300,6 +6317,7 @@
 				1EAFE56E205FFE82006A36B4 /* AdBlockerSettingsTableViewController.swift in Sources */,
 				745DAB301CDAAFAA00D44181 /* RecentlyClosedTabsPanel.swift in Sources */,
 				AF6FA98A20652D4600D7F9F0 /* TrackerListHostPaths.swift in Sources */,
+				AF77B88C2099FFC300E7A0C4 /* AntiPhishingDetector.swift in Sources */,
 				C45F44691D087DB600CB7EF0 /* TopTabsViewController.swift in Sources */,
 				4F0445DB203333BF00E2C0C7 /* TopSitesViewController.swift in Sources */,
 				1EDF0B1F207B837F00856493 /* KeyboardAccessoryView.swift in Sources */,
@@ -6349,6 +6367,7 @@
 				AF6FA99520652DF200D7F9F0 /* PersistentSet.swift in Sources */,
 				7BEFC6801BFF68C30059C952 /* QuickActions.swift in Sources */,
 				AFA9FACA208DFA120028CA1B /* ControlCenterDataSource.swift in Sources */,
+				AF77B890209A05E200E7A0C4 /* ConnectionManager.swift in Sources */,
 				4F0445D72033324500E2C0C7 /* NewsDataService.swift in Sources */,
 				D0C95E36200FDC5500E4E51C /* MetadataParserHelper.swift in Sources */,
 				0BF1B7E31AC60DEA00A7B407 /* InsetButton.swift in Sources */,
@@ -6464,6 +6483,7 @@
 				D02816C21ECA5E2A00240CAA /* HistoryStateHelper.swift in Sources */,
 				E68E7ACB1CAC1D4500FDCA76 /* PagingPasscodeViewController.swift in Sources */,
 				AF28D3DF207E37A20065FF86 /* GeoLocation.swift in Sources */,
+				AF77B88E209A022A00E7A0C4 /* NSData+GZIP.swift in Sources */,
 				AFA1DE102088D59400B27B8A /* BlockingCoordinator.swift in Sources */,
 				D34DC8531A16C40C00D49B7B /* Profile.swift in Sources */,
 				AFA9FAB9208DEF990028CA1B /* DomainStore.swift in Sources */,

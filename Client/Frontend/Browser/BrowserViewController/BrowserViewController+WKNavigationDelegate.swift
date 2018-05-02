@@ -103,6 +103,16 @@ extension BrowserViewController: WKNavigationDelegate {
             decisionHandler(.cancel)
             return
         }
+        
+        // Cliqz: display AntiPhishing Alert to warn the user of in case of anti-phishing website
+        // Cliqz: (Tim) - Antiphising should only check the mainDocumentURL.
+        if navigationAction.request.mainDocumentURL == url, let host = url.normalizedHost {
+            AntiPhishingDetector.isPhishingURL(url) { (isPhishingSite) in
+                if isPhishingSite {
+                    self.showAntiPhishingAlert(host)
+                }
+            }
+        }
 
         if let tab = tabManager.selectedTab, isStoreURL(url) {
             decisionHandler(.cancel)
