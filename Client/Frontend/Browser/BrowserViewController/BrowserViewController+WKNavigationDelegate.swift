@@ -110,6 +110,9 @@ extension BrowserViewController: WKNavigationDelegate {
             AntiPhishingDetector.isPhishingURL(url) { (isPhishingSite) in
                 if isPhishingSite {
                     self.showAntiPhishingAlert(host)
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.0, execute: {
+                        self.tabManager.selectedTab?.stop()
+                    })
                 }
             }
         }

@@ -62,6 +62,8 @@ extension BrowserViewController {
         
         let continueDespiteWarningButtonTitle = NSLocalizedString("Continue despite warning", tableName: "Cliqz", comment: "Continue despite warning buttun title in antiphishing alert title")
         alert.addAction(UIAlertAction(title: continueDespiteWarningButtonTitle, style: .destructive, handler: { (action) in
+            AntiPhishingDetector.disableForOneUrl = true
+            self.tabManager.selectedTab?.reload()
             //TelemetryLogger.sharedInstance.logEvent(.AntiPhishing("click", "continue", nil))
             //let duration = Int(Date.getCurrentMillis()-antiPhishingShowTime)
             //TelemetryLogger.sharedInstance.logEvent(.AntiPhishing("hide", nil, duration))

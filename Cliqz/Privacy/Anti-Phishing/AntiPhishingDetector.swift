@@ -16,9 +16,11 @@ class AntiPhishingDetector: NSObject {
     //MARK: - Singltone
     static let antiPhisingAPIURL = "https://antiphishing.cliqz.com/api/bwlist?md5="
     static var detectedPhishingURLs = [URL]()
+    static var disableForOneUrl = false
     
     //MARK: - public APIs
     class func isPhishingURL(_ url: URL, completion:@escaping (Bool) -> Void) {
+        guard disableForOneUrl == false else { disableForOneUrl = false; return } 
         guard url.host != "localhost" else {
             completion(false)
             return
