@@ -32,7 +32,7 @@ class GlobalTrackersViewController: UIViewController {
 		// self.navigationItem.rightBarButtonItem = self.editButtonItem
 		self.tableView.dataSource = self
 		self.tableView.delegate = self
-		self.tableView.register(CustomCell.self, forCellReuseIdentifier: "reuseIdentifier")
+		self.tableView.register(TrackerViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
 
 		view.addSubview(tableView)
 		//        view.addSubview(toolBar)
@@ -63,7 +63,7 @@ extension GlobalTrackersViewController: UITableViewDataSource, UITableViewDelega
 	
 	
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-		let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! CustomCell
+		let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! TrackerViewCell
 		
 		// Configure the cell...
 		cell.textLabel?.text = trackers[indexPath.row].name

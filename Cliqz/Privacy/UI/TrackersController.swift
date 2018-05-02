@@ -58,7 +58,7 @@ class TrackersController: UIViewController {
 
 		self.tableView.dataSource = self
 		self.tableView.delegate = self
-		self.tableView.register(CustomCell.self, forCellReuseIdentifier: "reuseIdentifier")
+		self.tableView.register(TrackerViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
 		view.addSubview(tableView)
 		tableView.snp.makeConstraints { (make) in
 			make.top.left.right.bottom.equalToSuperview()
@@ -72,10 +72,15 @@ class TrackersController: UIViewController {
 	@objc private func showActionSheet() {
 		let blockTrustAlertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
+		let restrictAll = UIAlertAction(title: NSLocalizedString("Restrict All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Restrict All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
+				self?.restrictAllCategories()
+		})
+		blockTrustAlertController.addAction(restrictAll)
 		let blockAll = UIAlertAction(title: NSLocalizedString("Block All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Block All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
-				self?.blockAllCategories()
+			self?.blockAllCategories()
 		})
 		blockTrustAlertController.addAction(blockAll)
+
 		let trustAll = UIAlertAction(title: NSLocalizedString("Trust All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Trust All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
 				self?.trustAllCategories()
 		})
@@ -87,11 +92,23 @@ class TrackersController: UIViewController {
 	}
 
 	private func blockAllCategories() {
-		
+		let count = self.dataSource?.numberOfSections(tableType: .page) ?? 0
+		for i in 0 ..< count {
+			if let x = self.dataSource?.category(.page, i) {
+				self.delegate?.changeState(category: x, tableType: .page, state: .blocked)
+			}
+		}
+		self.tableView.reloadData()
 	}
 
 	private func trustAllCategories() {
-		
+		self.delegate?.chageSiteState(to: .trusted)
+		self.tableView.reloadData()
+	}
+
+	private func restrictAllCategories() {
+		self.delegate?.chageSiteState(to: .restricted)
+		self.tableView.reloadData()
 	}
 }
 
@@ -114,7 +131,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 	}
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! CustomCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! TrackerViewCell
 
         if let title = self.dataSource?.title(tableType: .page, indexPath: indexPath) {
             cell.textLabel?.text = title
@@ -169,16 +186,15 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 			self.delegate?.changeState(appId: appId, state: .restricted)
 
             tableView.beginUpdates()
-            self.tableView.reloadRows(at: [indexPath], with: .none)
+			self.tableView.reloadSections([indexPath.section], with: .none)
             tableView.endUpdates()
             complHandler(false)
 		}
 		let blockAction = UIContextualAction(style: .destructive, title: "Block") { (action, view, complHandler) in
 			print("Block")
 			self.delegate?.changeState(appId: appId, state: .blocked)
-
             tableView.beginUpdates()
-            self.tableView.reloadRows(at: [indexPath], with: .none)
+			self.tableView.reloadSections([indexPath.section], with: .none)
             tableView.endUpdates()
             complHandler(false)
 		}
@@ -186,12 +202,12 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 			print("Trust")
 			self.delegate?.changeState(appId: appId, state: .trusted)
             tableView.beginUpdates()
-            self.tableView.reloadRows(at: [indexPath], with: .none)
+			self.tableView.reloadSections([indexPath.section], with: .none)
             tableView.endUpdates()
             complHandler(false)
 		}
 
-		trustAction.backgroundColor = UIColor(colorString: "9ECC42")
+		trustAction.backgroundColor = UIColor.cliqzGreenLightFunctional
 		blockAction.backgroundColor = UIColor(colorString: "E74055")
 		restrictAction.backgroundColor = UIColor(colorString: "BE4948")
 		trustAction.image = UIImage(named: "trustAction")
@@ -223,7 +239,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 	}
 }
 
-class CustomCell: UITableViewCell {
+class TrackerViewCell: UITableViewCell {
     var appId: Int = 0
 	let infoButton = UIButton(type: .custom)
 	let statusIcon = UIImageView()
@@ -232,18 +248,23 @@ class CustomCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 		self.contentView.addSubview(infoButton)
 		self.contentView.addSubview(statusIcon)
-		infoButton.snp.makeConstraints { (make) in
-			make.left.centerY.equalToSuperview()
-		}
-		statusIcon.snp.makeConstraints { (make) in
-			make.right.equalToSuperview().inset(10)
-			make.centerY.equalToSuperview()
-		}
+		infoButton.setImage(UIImage(named: "info"), for: .normal)
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+	override func layoutSubviews() {
+		super.layoutSubviews()
+		infoButton.snp.remakeConstraints { (make) in
+			make.left.centerY.equalToSuperview()
+		}
+		statusIcon.snp.remakeConstraints { (make) in
+			make.right.equalToSuperview().inset(10)
+			make.centerY.equalToSuperview()
+		}
+	}
 }
 
 class CategoriesHeaderView: UIControl {

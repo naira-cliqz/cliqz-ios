@@ -320,7 +320,8 @@ extension ControlCenterDataSource {
             case .trusted:
                 return UIImage(named: "trustTracker")
             case .other:
-                return nil //should be the minus image
+				return UIImage(named: "minus")
+
             }
         }
         return nil

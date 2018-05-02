@@ -318,7 +318,7 @@ class OverviewViewController: UIViewController {
     
     private func updatePauseGhosteryUI() {
         if self.pauseGhosteryButton.isSelected {
-            self.pauseGhosteryButton.backgroundColor = UIColor(colorString: "9ECC42")
+            self.pauseGhosteryButton.backgroundColor = UIColor.cliqzGreenLightFunctional
         }
         else {
             self.pauseGhosteryButton.backgroundColor = UIColor.white
@@ -327,7 +327,7 @@ class OverviewViewController: UIViewController {
     
     private func updateTrustSiteUI() {
         if self.trustSiteButton.isSelected {
-            self.trustSiteButton.backgroundColor = UIColor(colorString: "9ECC42")
+            self.trustSiteButton.backgroundColor = UIColor.cliqzGreenLightFunctional
         } else {
             self.trustSiteButton.backgroundColor = UIColor.white
         }
