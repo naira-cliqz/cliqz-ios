@@ -282,9 +282,47 @@ class OverviewViewController: UIViewController {
         
 	}
     
+    private func showPauseActionSheet() {
+        func pause(_ time: Date) {
+            self.delegate?.pauseGhostery(paused: true, time: time)
+            self.setPauseGhostery(!self.pauseGhosteryButton.isSelected)
+        }
+        
+        let pauseAlertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        let thirty = UIAlertAction(title: NSLocalizedString("30 minutes", tableName: "Cliqz", comment: "[ControlCenter - Overview] Pause Ghostery for thirty minutes title"), style: .default, handler: { (alert: UIAlertAction) -> Void in
+            let time = Date(timeIntervalSinceNow: 30 * 60)
+            pause(time)
+        })
+        pauseAlertController.addAction(thirty)
+        
+        let onehour = UIAlertAction(title: NSLocalizedString("1 hour", tableName: "Cliqz", comment: "[ControlCenter - Overview] Pause Ghostery for one hour title"), style: .default, handler: { (alert: UIAlertAction) -> Void in
+            let time = Date(timeIntervalSinceNow: 60 * 60)
+            pause(time)
+        })
+        pauseAlertController.addAction(onehour)
+        
+        let twentyfour = UIAlertAction(title: NSLocalizedString("24 hours", tableName: "Cliqz", comment: "[ControlCenter - Overview] Pause Ghostery for twentyfour hours title"), style: .default, handler: { (alert: UIAlertAction) -> Void in
+            let time = Date(timeIntervalSinceNow: 24 * 60 * 60)
+            pause(time)
+        })
+        pauseAlertController.addAction(twentyfour)
+        
+        let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Cancel action title"), style: .cancel)
+        pauseAlertController.addAction(cancelAction)
+        self.present(pauseAlertController, animated: true, completion: nil)
+    }
+    
     @objc private func pauseGhosteryPressed() {
-        setPauseGhostery(!self.pauseGhosteryButton.isSelected)
-        self.pauseGhosteryButton.isSelected ? self.delegate?.pauseGhostery(paused: true) : self.delegate?.pauseGhostery(paused: false)
+        if self.pauseGhosteryButton.isSelected { //already paused
+            //resume
+            self.delegate?.pauseGhostery(paused: false, time: Date())
+            self.setPauseGhostery(!self.pauseGhosteryButton.isSelected)
+        }
+        else {
+            //pause
+            showPauseActionSheet()
+        }
     }
 
 	@objc private func trustSitePressed() {
@@ -318,9 +356,11 @@ class OverviewViewController: UIViewController {
     
     private func updatePauseGhosteryUI() {
         if self.pauseGhosteryButton.isSelected {
-            self.pauseGhosteryButton.backgroundColor = UIColor(colorString: "9ECC42")
+            self.pauseGhosteryButton.setTitle(NSLocalizedString("Resume", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Resume Ghostery button title"), for: .normal)
+            self.pauseGhosteryButton.backgroundColor = UIColor.cliqzBluePrimary
         }
         else {
+            self.pauseGhosteryButton.setTitle(NSLocalizedString("Pause Ghostery", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Pause Ghostery button title"), for: .normal)
             self.pauseGhosteryButton.backgroundColor = UIColor.white
         }
     }

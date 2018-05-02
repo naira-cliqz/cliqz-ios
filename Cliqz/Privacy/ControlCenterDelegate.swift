@@ -10,7 +10,7 @@ import UIKit
 
 protocol ControlCenterDelegateProtocol: class {
     func chageSiteState(to: DomainState)
-    func pauseGhostery(paused: Bool)
+    func pauseGhostery(paused: Bool, time: Date)
     func turnGlobalAntitracking(on: Bool)
     func turnGlobalAdblocking(on: Bool)
     func changeState(appId: Int, state: TrackerStateEnum)
@@ -61,8 +61,8 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
         DomainStore.changeState(domain: domainObj, state: to)
     }
     
-    func pauseGhostery(paused: Bool) {
-        paused ? UserPreferences.instance.pauseGhosteryMode = .paused : (UserPreferences.instance.pauseGhosteryMode = .notPaused)
+    func pauseGhostery(paused: Bool, time: Date) {
+        paused ? UserPreferences.instance.pauseGhosteryDate = time : (UserPreferences.instance.pauseGhosteryDate = Date(timeIntervalSince1970: 0))
         UserPreferences.instance.writeToDisk()
     }
     

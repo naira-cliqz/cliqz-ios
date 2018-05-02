@@ -29,7 +29,7 @@ import Foundation
     let TrackerListVersionKey = "TrackerListVersion"
     let AntitrackingModeKey = "AntitrackingMode"
     let AdblockingModeKey = "AdblockingMode"
-    let PauseGhosteryModeKey = "PauseGhosteryMode"
+    let PauseGhosteryDateKey = "PauseGhosteryDate"
     let BlockNewTrackersKey = "block_new_trackers_by_default"
     let HasRunBeforeKey = "NotFirstRun"
     
@@ -63,15 +63,23 @@ import Foundation
     
     var pauseGhosteryMode: PauseGhosteryMode {
         get {
-            if let mode = PauseGhosteryMode(rawValue: userDefaults().integer(forKey: PauseGhosteryModeKey)) {
-                return mode
+            if Date().timeIntervalSince1970 < pauseGhosteryDate.timeIntervalSince1970 {
+                return .paused
             }
-            else {
-                return .notPaused
-            }
+            return .notPaused
         }
         set {
-            userDefaults().set(newValue.rawValue, forKey: PauseGhosteryModeKey)
+            fatalError("never set the ghostery mode")
+        }
+    }
+    
+    var pauseGhosteryDate: Date {
+        get {
+            let interval = userDefaults().double(forKey: PauseGhosteryDateKey)
+            return Date(timeIntervalSince1970: interval)
+        }
+        set {
+            userDefaults().set(newValue.timeIntervalSince1970, forKey: PauseGhosteryDateKey)
         }
     }
     
