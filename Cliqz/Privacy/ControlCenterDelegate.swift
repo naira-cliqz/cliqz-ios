@@ -87,6 +87,8 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
             
             let domainObj = getOrCreateDomain()
             if state == .trusted {
+                //disable domain restriction if applicable
+                DomainStore.changeState(domain: domainObj, state: .none)
                 //add it to trusted sites
                 DomainStore.add(appId: appId, domain: domainObj, list: .trustedList)
                 //remove it from restricted if it is there
@@ -99,6 +101,8 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
                 DomainStore.remove(appId: appId, domain: domainObj, list: .trustedList)
             }
             else {
+                //disable domain restriction if applicable
+                DomainStore.changeState(domain: domainObj, state: .none)
                 //remove from trusted and restricted
                 DomainStore.remove(appId: appId, domain: domainObj, list: .trustedList)
                 DomainStore.remove(appId: appId, domain: domainObj, list: .restrictedList)
