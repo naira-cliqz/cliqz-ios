@@ -8,15 +8,45 @@
 
 import WebKit
 
+enum BlockListType {
+    case antitracking
+    case adblocker
+}
+
 final class BlockingCoordinator {
     
     private var isUpdating = false
+    private var shouldUpdateAgain = false
     
-    var isAdblockerOn: Bool {
+    private unowned let webView: WKWebView
+    
+    private let updateQueue: OperationQueue //only for update calls
+    
+    init(webView: WKWebView) {
+        self.webView = webView
+        self.updateQueue = OperationQueue()
+        updateQueue.maxConcurrentOperationCount = 1
+        updateQueue.underlyingQueue = DispatchQueue.main
+    }
+    
+    //TODO: Make sure that at the time of the coordinatedUpdate, all necessary blocklists are in the cache
+    func coordinatedUpdate() {
+        debugPrint("Coordinated Update")
+        if self.updateQueue.operations.filter({ (op) -> Bool in return !(op.isExecuting  || op.isFinished || op.isCancelled) }).count == 0 {
+            debugPrint("Add to Update Queue")
+            let updateOp = UpdateOperation(webView: self.webView)
+            self.updateQueue.addOperation(updateOp)
+        }
+    }
+}
+
+final class UpdateHelper {
+    
+    class func isAdblockerOn() -> Bool {
         return UserPreferences.instance.adblockingMode == .blockAll
     }
     
-    func isAntitrackingOn(domain: String?) -> Bool {
+    class func isAntitrackingOn(domain: String?) -> Bool {
         
         if UserPreferences.instance.pauseGhosteryMode == .paused {
             return false
@@ -28,19 +58,14 @@ final class BlockingCoordinator {
         return true
     }
     
-    enum BlockListType {
-        case antitracking
-        case adblocker
-    }
-    
     //order in which to load the blocklists
-    let order: [BlockListType] = [.antitracking, .adblocker]
+    static let order: [BlockListType] = [.antitracking, .adblocker]
     
-    func featureIsOn(forType: BlockListType, domain: String?) -> Bool {
-        return forType == .antitracking ? isAntitrackingOn(domain: domain) : isAdblockerOn
+    class func featureIsOn(forType: BlockListType, domain: String?) -> Bool {
+        return forType == .antitracking ? isAntitrackingOn(domain: domain) : isAdblockerOn()
     }
     
-    func identifiersForAntitracking(domain: String?) -> [String] {
+    class func identifiersForAntitracking(domain: String?) -> [String] {
         //logic what to load for antitracking
         if UserPreferences.instance.antitrackingMode == .blockAll {
             return BlockListIdentifiers.antitrackingBlockAllIdentifiers()
@@ -57,26 +82,59 @@ final class BlockingCoordinator {
         return BlockListIdentifiers.antitrackingBlockSelectedIdentifiers(domain: domain)
     }
     
-    func identifiersFor(type: BlockListType, domain: String?) -> [String] {
+    class func identifiersFor(type: BlockListType, domain: String?) -> [String] {
         return type == .antitracking ? identifiersForAntitracking(domain: domain) : BlockListIdentifiers.adblockingIdentifiers()
     }
+}
+
+class UpdateOperation: Operation {
     
-    //TODO: Make sure that at the time of the coordinatedUpdate, all necessary blocklists are in the cache
-    func coordinatedUpdate(webView: WKWebView?) {
-        guard isUpdating == false else { return }
-        
-        isUpdating = true
-        
-        guard let webView = webView else {return}
+    private unowned let webView: WKWebView
     
+    private var _executing: Bool = false
+    override var isExecuting: Bool {
+        get {
+            return _executing
+        }
+        set {
+            if _executing != newValue {
+                willChangeValue(forKey: "isExecuting")
+                _executing = newValue
+                didChangeValue(forKey: "isExecuting")
+            }
+        }
+    }
+    
+    private var _finished: Bool = false;
+    override var isFinished: Bool {
+        get {
+            return _finished
+        }
+        set {
+            if _finished != newValue {
+                willChangeValue(forKey: "isFinished")
+                _finished = newValue
+                didChangeValue(forKey: "isFinished")
+            }
+        }
+    }
+    
+    init(webView: WKWebView) {
+        self.webView = webView
+        super.init()
+    }
+    
+    override func main() {
+        self.isExecuting = true
+        
         var blockLists: [WKContentRuleList] = []
         let dispatchGroup = DispatchGroup()
         let domain = webView.url?.normalizedHost
-        for type in order {
-            if featureIsOn(forType: type, domain: domain) {
+        for type in UpdateHelper.order {
+            if UpdateHelper.featureIsOn(forType: type, domain: domain) {
                 //get the blocklists for that type
                 dispatchGroup.enter()
-                let identifiers = identifiersFor(type: type, domain: domain)
+                let identifiers = UpdateHelper.identifiersFor(type: type, domain: domain)
                 BlockListManager.shared.getBlockLists(forIdentifiers: identifiers, callback: { (lists) in
                     blockLists.append(contentsOf: lists)
                     type == .antitracking ? debugPrint("Antitracking is ON") : debugPrint("Adblocking is ON")
@@ -89,10 +147,11 @@ final class BlockingCoordinator {
         }
         
         dispatchGroup.notify(queue: .main) {
-            webView.configuration.userContentController.removeAllContentRuleLists()
-            blockLists.forEach(webView.configuration.userContentController.add)
+            self.webView.configuration.userContentController.removeAllContentRuleLists()
+            blockLists.forEach(self.webView.configuration.userContentController.add)
             debugPrint("BlockLists Loaded")
-            self.isUpdating = false
+            self.isFinished = true
         }
     }
 }
+

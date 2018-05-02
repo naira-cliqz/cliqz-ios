@@ -30,11 +30,9 @@ final class BlockListManager {
         var blfm: BlockListFileManager? = nil
         
         for id in forIdentifiers {
-            dispatchGroup.enter()
             listStore?.lookUpContentRuleList(forIdentifier: id) { (ruleList, error) in
                 if let ruleList = ruleList {
                     returnList.append(ruleList)
-                    dispatchGroup.leave()
                 }
                 else {
                     debugPrint("CACHE: did not find list for identifier = \(id)")
@@ -42,6 +40,7 @@ final class BlockListManager {
                         blfm = BlockListFileManager()
                     }
                     if let json = blfm!.json(forIdentifier: id) {
+                        dispatchGroup.enter()
                         debugPrint("CACHE: will compile list for identifier = \(id)")
                         let operation = CompileOperation(identifier: id, json: json)
                         

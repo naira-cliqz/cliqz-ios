@@ -28,6 +28,9 @@ extension Tab {
         self.webView?.configuration.userContentController.addUserScript(postloadScript)
         
         //Cliqz: Privacy - SetUpBlocking
+        if let webView = self.webView {
+            self.blockingCoordinator = BlockingCoordinator(webView: webView)
+        }
         updateBlocking()
         
         NotificationCenter.default.addObserver(self, selector: #selector(trackersChanged), name: controlCenterDismissedNotification, object: nil)
@@ -51,7 +54,7 @@ extension Tab {
     }
     
     func updateBlocking() {
-        blockingCoordinator.coordinatedUpdate(webView: self.webView)
+        blockingCoordinator?.coordinatedUpdate()
     }
     
     func urlChanged() {
