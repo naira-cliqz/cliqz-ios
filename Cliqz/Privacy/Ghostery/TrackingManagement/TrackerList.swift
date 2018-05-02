@@ -549,8 +549,15 @@ let trackersLoadedNotification = Notification.Name(rawValue:"TrackersLoadedNotif
         return dict
     }
     
-    func countByCategory(domain: String) ->Dictionary<String, Int> {
-        let list = self.detectedTrackersForPage(domain)
+    func countByCategory(domain: String? = nil ) ->Dictionary<String, Int> {
+        let list: [TrackerListApp]
+        
+        if let domain = domain {
+            list = self.detectedTrackersForPage(domain)
+        } else {
+            list = self.globalTrackerList()
+        }
+        
         return list.groupAndReduce(byKey: { (app) -> String in
             return app.category
         }, reduce: { (list) -> Int in

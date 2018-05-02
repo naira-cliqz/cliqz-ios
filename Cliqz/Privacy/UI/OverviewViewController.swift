@@ -152,23 +152,33 @@ class OverviewViewController: UIViewController {
 	}
 
 	private func updateData() {
-		self.urlLabel.text = self.dataSource?.domainString()
-		let values = self.dataSource?.countByCategory().map { PieChartDataEntry(value: Double($0.1), label: nil) }
+        guard let datasource = self.dataSource else { return }
+        
+		self.urlLabel.text = datasource.domainString()
+        let countsAndColors = datasource.countAndColorByCategory()
+        var values: [PieChartDataEntry] = []
+        var colors: [UIColor] = []
+        for key in countsAndColors.keys {
+            if let touple = countsAndColors[key] {
+                values.append(PieChartDataEntry(value: Double(touple.0)))
+                colors.append(touple.1)
+            }
+        }
 		let dataSet = PieChartDataSet(values: values, label: "")
 		dataSet.drawIconsEnabled = false
 		dataSet.drawValuesEnabled = false
 		dataSet.iconsOffset = CGPoint(x: 0, y: 20.0)
-		dataSet.colors = [NSUIColor(colorString: "CB55CD"), NSUIColor(colorString: "87D7EF"), NSUIColor(colorString: "43B7C5"), NSUIColor(colorString: "FDC257"), NSUIColor(colorString: "EF671E")]
+		dataSet.colors = colors
 		blockedTrackers.text = String(format: NSLocalizedString("%d Trackers Blocked", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Blocked trackers count"), self.dataSource?.blockedTrackerCount() ?? 0)
 		chart?.data = PieChartData(dataSet: dataSet)
 		chart?.centerText = String(format: NSLocalizedString("%d Trackers found", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Detected trackers count"), self.dataSource?.detectedTrackerCount() ?? 0)
-		let domainState = self.dataSource?.domainState()
+		let domainState = datasource.domainState()
 		if domainState == .trusted {
 			setTrustSite(true)
 		} else if domainState == .restricted {
 			setRestrictSite(true)
 		}
-		setPauseGhostery(self.dataSource?.isGhosteryPaused() ?? false)
+		setPauseGhostery(datasource.isGhosteryPaused())
 	}
 
 	private func setupComponents() {
