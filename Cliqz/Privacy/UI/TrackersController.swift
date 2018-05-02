@@ -110,12 +110,12 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
     }
 
 	func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-		return 80
+		return 90
 	}
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! CustomCell
-        
+
         if let title = self.dataSource?.title(tableType: .page, indexPath: indexPath) {
             cell.textLabel?.text = title
         }
@@ -134,47 +134,16 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
     }
 
 	func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let title =  self.dataSource?.title(tableType: .page, section: section)
-		
-        let header = UIView()
-		header.backgroundColor = UIColor.white
-		let titleLbl = UILabel()
-		titleLbl.text = title
-		header.addSubview(titleLbl)
-		let icon = UIImageView()
-		header.addSubview(icon)
-		icon.snp.makeConstraints { (make) in
-			make.left.top.equalToSuperview().offset(10)
-			make.width.height.equalTo(50)
-		}
-		icon.image = self.dataSource?.image(tableType: .page, section: section) ?? nil
-		titleLbl.snp.makeConstraints { (make) in
-			make.top.right.equalToSuperview().offset(10)
-			make.left.equalTo(icon.snp.right).offset(10)
-			make.height.equalTo(25)
-		}
-		titleLbl.font = UIFont.systemFont(ofSize: 16)
-		let descLbl = UILabel()
-        let trackersCount = self.dataSource?.trackerCount(tableType: .page, section: section) ?? 0
-        let blockedCount = self.dataSource?.blockedTrackerCount(tableType: .page, section: section) ?? 0
-		descLbl.text = String(format: NSLocalizedString("%d TRACKERS %d Blocked", tableName: "Cliqz", comment: "[ControlCenter -> Trackers] Detected and Blocked trackers count"), trackersCount, blockedCount)
-		descLbl.font = UIFont.systemFont(ofSize: 12)
-		descLbl.textColor = ControlCenterUI.separatorGray
-		header.addSubview(descLbl)
-		descLbl.snp.makeConstraints { (make) in
-			make.right.equalToSuperview().offset(10)
-			make.top.equalTo(titleLbl.snp.bottom).offset(0)
-			make.left.equalTo(icon.snp.right).offset(10)
-			make.height.equalTo(25)
-		}
-		let statusIcon = UIImageView()
-		header.addSubview(statusIcon)
-		statusIcon.snp.makeConstraints { (make) in
-			make.centerY.equalToSuperview()
-			make.right.equalToSuperview().offset(10)
-		}
-		statusIcon.image = self.dataSource?.image(tableType: .page, section: section)
+		let header = CategoryHeaderView()
+		header.type = .page
 		header.tag = section
+		header.categoryName = self.dataSource?.title(tableType: .page, section: section)
+		header.categoryIcon = self.dataSource?.image(tableType: .page, section: section) ?? nil
+		header.trackersCount = self.dataSource?.trackerCount(tableType: .page, section: section) ?? 0
+		header.blockedTrackersCount = self.dataSource?.blockedTrackerCount(tableType: .page, section: section) ?? 0
+		header.statusIcon = self.dataSource?.stateIcon(tableType: .page, section: section)
+		header.isExpanded = section == expandedSectionIndex
+		
 		let headerTapGesture = UITapGestureRecognizer()
 		headerTapGesture.addTarget(self, action: #selector(sectionHeaderTapped(_:)))
 		header.addGestureRecognizer(headerTapGesture)
@@ -194,7 +163,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 	func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
 		// by default antitracking should be off until user configures manually
         let appId = self.dataSource?.appId(tableType: .page, indexPath: indexPath) ?? -1
-		
+
         let restrictAction = UIContextualAction(style: .destructive, title: "Restrict") { (action, view, complHandler) in
 			print("Restrict")
 			self.delegate?.changeState(appId: appId, state: .restricted)
@@ -216,7 +185,6 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 		let trustAction = UIContextualAction(style: .normal, title: "Trust") { (action, view, complHandler) in
 			print("Trust")
 			self.delegate?.changeState(appId: appId, state: .trusted)
-
             tableView.beginUpdates()
             self.tableView.reloadRows(at: [indexPath], with: .none)
             tableView.endUpdates()
@@ -259,7 +227,7 @@ class CustomCell: UITableViewCell {
     var appId: Int = 0
 	let infoButton = UIButton(type: .custom)
 	let statusIcon = UIImageView()
-	
+
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 		self.contentView.addSubview(infoButton)
@@ -325,5 +293,126 @@ class CategoriesHeaderView: UIControl {
 	override func addTarget(_ target: Any?, action: Selector, for controlEvents: UIControlEvents) {
 		self.actionButton.addTarget(target, action: action, for: controlEvents)
 	}
+}
 
+class CategoryHeaderView: UIView {
+
+	private let iconView = UIImageView()
+	private let categoryLabel = UILabel()
+	private let statisticsLabel = UILabel()
+	private let typeLabel = UILabel()
+	private let statusView = UIImageView()
+	private let expandedIcon = UIImageView()
+
+	var isExpanded = false {
+		didSet {
+			if isExpanded {
+				expandedIcon.image = UIImage(named: "collapseCategory")
+			} else {
+				expandedIcon.image = UIImage(named: "expandCategory")
+			}
+		}
+	}
+
+	var categoryName: String? { //= self.dataSource?.title(tableType: .page, section: section)
+		didSet {
+			categoryLabel.text = categoryName
+		}
+	}
+
+	var trackersCount = 0 {
+		didSet {
+			updateStatistics()
+		}
+	}
+
+	var blockedTrackersCount = 0 {
+		didSet {
+			updateStatistics()
+		}
+	}
+
+	var categoryIcon: UIImage? {
+		didSet {
+			self.iconView.image = categoryIcon
+		}
+	}
+
+	var statusIcon: UIImage? {
+		didSet {
+			self.statusView.image = statusIcon
+		}
+	}
+
+	var type: TableType = .page {
+		didSet {
+			switch type {
+			case .page:
+				self.typeLabel.text = NSLocalizedString("On this site", tableName: "Cliqz", comment: "[ControlCenter -> Trackers] category status for the current site")
+			case .global:
+				self.typeLabel.text = NSLocalizedString("On all sites", tableName: "Cliqz", comment: "[ControlCenter -> Global Trackers] category status fo all sites")
+			}
+		}
+	}
+
+	init() {
+		super.init(frame: CGRect.zero)
+		self.addSubview(iconView)
+		self.addSubview(categoryLabel)
+		self.addSubview(statisticsLabel)
+		self.addSubview(statusView)
+		self.addSubview(typeLabel)
+		self.addSubview(expandedIcon)
+		self.setStyles()
+	}
+
+	required init?(coder aDecoder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+
+	override func layoutSubviews() {
+		super.layoutSubviews()
+		iconView.snp.remakeConstraints { (make) in
+			make.left.top.equalToSuperview().offset(10)
+			make.width.height.equalTo(50)
+		}
+		categoryLabel.snp.remakeConstraints { (make) in
+			make.top.right.equalToSuperview().offset(10)
+			make.left.equalTo(iconView.snp.right).offset(10)
+			make.height.equalTo(25)
+		}
+		statisticsLabel.snp.remakeConstraints { (make) in
+			make.right.equalToSuperview().offset(10)
+			make.top.equalTo(categoryLabel.snp.bottom).offset(0)
+			make.left.equalTo(categoryLabel)
+			make.height.equalTo(25)
+		}
+		statusView.snp.remakeConstraints { (make) in
+			make.centerY.equalToSuperview().offset(-7)
+			make.right.equalToSuperview().inset(10)
+		}
+		typeLabel.snp.remakeConstraints { (make) in
+			make.left.equalTo(categoryLabel)
+			make.top.equalTo(statisticsLabel.snp.bottom)
+			make.right.equalToSuperview()
+			make.height.equalTo(20)
+		}
+		expandedIcon.snp.remakeConstraints { (make) in
+			make.top.equalTo(statusView.snp.bottom).offset(20)
+			make.centerX.equalTo(statusView.snp.centerX)
+		}
+	}
+
+	func setStyles() {
+		self.backgroundColor = UIColor.white
+		categoryLabel.font = UIFont.systemFont(ofSize: 16)
+		statisticsLabel.font = UIFont.systemFont(ofSize: 12)
+		statisticsLabel.textColor = ControlCenterUI.separatorGray
+		typeLabel.textColor = UIColor.black
+		typeLabel.font = UIFont.systemFont(ofSize: 10)
+	}
+
+	private func updateStatistics() {
+		statisticsLabel.text = String(format: NSLocalizedString("%d TRACKERS %d Blocked", tableName: "Cliqz", comment: "[ControlCenter -> Trackers] Detected and Blocked trackers count"), self.trackersCount, self.blockedTrackersCount)
+	}
 }
