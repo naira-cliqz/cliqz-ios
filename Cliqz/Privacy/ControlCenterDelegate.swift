@@ -10,7 +10,7 @@ import UIKit
 
 protocol ControlCenterDelegateProtocol: class {
     func chageSiteState(to: DomainState)
-    func pauseGhostery(paused: Bool)
+    func pauseGhostery(paused: Bool, time: Date)
     func turnGlobalAntitracking(on: Bool)
     func turnGlobalAdblocking(on: Bool)
     func changeState(appId: Int, state: TrackerStateEnum)
@@ -61,8 +61,8 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
         DomainStore.changeState(domain: domainObj, state: to)
     }
     
-    func pauseGhostery(paused: Bool) {
-        paused ? UserPreferences.instance.pauseGhosteryMode = .paused : (UserPreferences.instance.pauseGhosteryMode = .notPaused)
+    func pauseGhostery(paused: Bool, time: Date) {
+        paused ? UserPreferences.instance.pauseGhosteryDate = time : (UserPreferences.instance.pauseGhosteryDate = Date(timeIntervalSince1970: 0))
         UserPreferences.instance.writeToDisk()
     }
     
@@ -87,6 +87,8 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
             
             let domainObj = getOrCreateDomain()
             if state == .trusted {
+                //disable domain restriction if applicable
+                DomainStore.changeState(domain: domainObj, state: .none)
                 //add it to trusted sites
                 DomainStore.add(appId: appId, domain: domainObj, list: .trustedList)
                 //remove it from restricted if it is there
@@ -99,6 +101,8 @@ class ControlCenterDelegate: ControlCenterDelegateProtocol {
                 DomainStore.remove(appId: appId, domain: domainObj, list: .trustedList)
             }
             else {
+                //disable domain restriction if applicable
+                DomainStore.changeState(domain: domainObj, state: .none)
                 //remove from trusted and restricted
                 DomainStore.remove(appId: appId, domain: domainObj, list: .trustedList)
                 DomainStore.remove(appId: appId, domain: domainObj, list: .restrictedList)

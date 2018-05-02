@@ -17,7 +17,7 @@ protocol ControlCenterDSProtocol: class {
     
     func domainString() -> String
     func domainState() -> DomainState
-    func countByCategory() -> Dictionary<String, Int>
+    func countAndColorByCategory() -> Dictionary<String, (Int, UIColor)>
     func detectedTrackerCount() -> Int
     func blockedTrackerCount() -> Int
     func isGhosteryPaused() -> Bool
@@ -65,16 +65,15 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
         }
     }
     
-    let category2Name = ["advertising": "Advertising",
-                         "audio_video_player": "Audio/Video Player",
-                         "comments": "Comments",
-                         "customer_interaction": "Customer Interaction",
-                         "essential": "Essential",
-                         "pornvertising": "Adult Advertising",
-                         "site_analytics": "Site Analytics",
-                         "social_media": "Social Media",
-                         "uncategorized": "Uncategorized"
-    ]
+    let category2NameAndColor = ["advertising": ("Advertising", UIColor(colorString: "CB55CD")),
+                                 "audio_video_player": ("Audio/Video Player", UIColor(colorString: "EF671E")),
+                                 "comments": ("Comments", UIColor(colorString: "43B7C5")),
+                                 "customer_interaction": ("Customer Interaction", UIColor(colorString: "FDC257")),
+                                 "essential": ("Essential", UIColor(colorString: "FC9734")),
+                                 "pornvertising": ("Adult Content", UIColor(colorString: "ECAFC2")),
+                                 "site_analytics": ("Site Analytics", UIColor(colorString: "87D7EF")),
+                                 "social_media": ("Social Media", UIColor(colorString: "388EE8")),
+                                 "uncategorized": ("Uncategorized", UIColor(colorString: "8459A5"))]
     
     let pageCategories: [String]
     let globalCategories: [String]
@@ -83,13 +82,14 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     let pageTrackers: Dictionary<String, [TrackerListApp]>
     let globalTrackers: Dictionary<String, [TrackerListApp]>
     
+    
     //TODO: update mechanism
     init(url: URL) {
         self.domainStr = url.normalizedHost ?? url.absoluteString
         self.pageTrackers = TrackerList.instance.trackersByCategory(for: self.domainStr)
-        self.pageCategories = Array(self.pageTrackers.keys)
+        self.pageCategories = TrackerList.instance.countByCategory(domain: self.domainStr).sortedKeysAscending(false)
         self.globalTrackers = TrackerList.instance.trackersByCategory()
-        self.globalCategories = Array(self.globalTrackers.keys)
+        self.globalCategories = TrackerList.instance.countByCategory().sortedKeysAscending(false)
     }
     
     func domainString() -> String {
@@ -102,9 +102,17 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
         }
         return .none //placeholder
     }
-    
-    func countByCategory() -> Dictionary<String, Int> {
-        return TrackerList.instance.countByCategory(domain: self.domainStr)
+
+    func countAndColorByCategory() -> Dictionary<String, (Int, UIColor)> {
+        let countDict = TrackerList.instance.countByCategory(domain: self.domainStr)
+        var dict: Dictionary<String, (Int, UIColor)> = [:]
+        for key in countDict.keys {
+            if let count = countDict[key], let color = category2NameAndColor[key]?.1 {
+                dict[key] = (count, color)
+            }
+        }
+        
+        return dict
     }
     
     func detectedTrackerCount() -> Int {
@@ -155,7 +163,10 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func title(tableType: TableType, section: Int) -> String {
-        return category2Name[category(tableType, section)] ?? ""
+        if let touple = category2NameAndColor[category(tableType, section)] {
+            return touple.0
+        }
+        return ""
     }
     
     func image(tableType: TableType, section: Int) -> UIImage? {

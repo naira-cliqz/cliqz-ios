@@ -66,7 +66,7 @@ class Tab: NSObject {
         return self.url
     }
     //Cliqz: Privacy
-    let blockingCoordinator = BlockingCoordinator()
+    var blockingCoordinator: BlockingCoordinator? = nil
     var lastDomain = ""
 
     var userActivity: NSUserActivity?

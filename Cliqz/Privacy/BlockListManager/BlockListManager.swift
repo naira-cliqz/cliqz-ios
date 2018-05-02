@@ -54,6 +54,9 @@ final class BlockListManager {
                         
                         self.loadQueue?.addOperation(operation)
                     }
+                    else {
+                        dispatchGroup.leave()
+                    }
                 }
             }
         }
