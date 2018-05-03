@@ -27,11 +27,13 @@ class ControlCenterViewController: UIViewController {
 
 	fileprivate lazy var trackersViewController: TrackersController = {
 		let trackers = TrackersController()
+		trackers.type = .page
 		return trackers
 	}()
 
-	fileprivate lazy var globalTrackersViewController: GlobalTrackersViewController = {
-		let global = GlobalTrackersViewController()
+	fileprivate lazy var globalTrackersViewController: TrackersController = {
+		let global = TrackersController()
+		global.type = .global
 		return global
 	}()
 
@@ -154,6 +156,8 @@ class ControlCenterViewController: UIViewController {
 			self.trackersViewController.delegate = self.delegate
 			return self.trackersViewController
 		case 2:
+			self.globalTrackersViewController.dataSource = self.dataSource
+			self.globalTrackersViewController.delegate = self.delegate
 			return self.globalTrackersViewController
 		default:
 			return UIViewController()

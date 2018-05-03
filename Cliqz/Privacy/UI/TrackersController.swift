@@ -19,7 +19,11 @@ struct ControlCenterUI {
 
 class TrackersController: UIViewController {
 
-	var type: TableType = .page
+	var type: TableType = .page {
+		didSet {
+			self.tableView.reloadData()
+		}
+	}
 
 	weak var dataSource: ControlCenterDSProtocol? {
 		didSet {
@@ -100,7 +104,21 @@ class TrackersController: UIViewController {
 	}
 
 	private func showGlobalActionSheet() {
+		let blockTrustAlertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 		
+		let blockAll = UIAlertAction(title: NSLocalizedString("Block All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Block All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
+			self?.blockAllCategories()
+		})
+		blockTrustAlertController.addAction(blockAll)
+		
+		let unblockAll = UIAlertAction(title: NSLocalizedString("Unblock All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Unblock All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
+			self?.unblockAllCategories()
+		})
+		blockTrustAlertController.addAction(unblockAll)
+		
+		let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Cancel action title"), style: .cancel)
+		blockTrustAlertController.addAction(cancelAction)
+		self.present(blockTrustAlertController, animated: true, completion: nil)
 	}
 
 	private func blockAllCategories() {
@@ -120,6 +138,11 @@ class TrackersController: UIViewController {
 
 	private func restrictAllCategories() {
 		self.delegate?.chageSiteState(to: .restricted)
+		self.tableView.reloadData()
+	}
+
+	private func unblockAllCategories() {
+		self.delegate?.chageSiteState(to: .none)
 		self.tableView.reloadData()
 	}
 
@@ -196,43 +219,64 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 	}
 
 	func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-		// by default antitracking should be off until user configures manually
-        let appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
-
-        let restrictAction = UIContextualAction(style: .destructive, title: "Restrict") { (action, view, complHandler) in
-			print("Restrict")
-			self.delegate?.changeState(appId: appId, state: .restricted)
-
-            tableView.beginUpdates()
-			self.tableView.reloadSections([indexPath.section], with: .none)
-            tableView.endUpdates()
-            complHandler(false)
+		switch (type) {
+		case .page:
+			return self.swipeConfigForPage(at: indexPath)
+		case .global:
+			return self.swipeConfigForGlobal(at: indexPath)
 		}
+	}
+
+	private func swipeConfigForGlobal(at indexPath: IndexPath) -> UISwipeActionsConfiguration {
+		let appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
 		let blockAction = UIContextualAction(style: .destructive, title: "Block") { (action, view, complHandler) in
 			print("Block")
 			self.delegate?.changeState(appId: appId, state: .blocked)
-            tableView.beginUpdates()
+			self.tableView.beginUpdates()
 			self.tableView.reloadSections([indexPath.section], with: .none)
-            tableView.endUpdates()
-            complHandler(false)
+			self.tableView.endUpdates()
+			complHandler(false)
+		}
+		blockAction.backgroundColor = UIColor(colorString: "E74055")
+		blockAction.image = UIImage(named: "blockAction")
+		return UISwipeActionsConfiguration(actions: [blockAction])
+	}
+
+	private func swipeConfigForPage(at indexPath: IndexPath) -> UISwipeActionsConfiguration {
+		let appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
+		let restrictAction = UIContextualAction(style: .destructive, title: "Restrict") { (action, view, complHandler) in
+		print("Restrict")
+		self.delegate?.changeState(appId: appId, state: .restricted)
+	
+		self.tableView.beginUpdates()
+		self.tableView.reloadSections([indexPath.section], with: .none)
+		self.tableView.endUpdates()
+		complHandler(false)
+		}
+		let blockAction = UIContextualAction(style: .destructive, title: "Block") { (action, view, complHandler) in
+		print("Block")
+		self.delegate?.changeState(appId: appId, state: .blocked)
+		self.tableView.beginUpdates()
+		self.tableView.reloadSections([indexPath.section], with: .none)
+		self.tableView.endUpdates()
+		complHandler(false)
 		}
 		let trustAction = UIContextualAction(style: .normal, title: "Trust") { (action, view, complHandler) in
-			print("Trust")
-			self.delegate?.changeState(appId: appId, state: .trusted)
-            tableView.beginUpdates()
-			self.tableView.reloadSections([indexPath.section], with: .none)
-            tableView.endUpdates()
-            complHandler(false)
+		print("Trust")
+		self.delegate?.changeState(appId: appId, state: .trusted)
+		self.tableView.beginUpdates()
+		self.tableView.reloadSections([indexPath.section], with: .none)
+		self.tableView.endUpdates()
+		complHandler(false)
 		}
-
+	
 		trustAction.backgroundColor = UIColor.cliqzGreenLightFunctional
 		blockAction.backgroundColor = UIColor(colorString: "E74055")
 		restrictAction.backgroundColor = UIColor(colorString: "BE4948")
 		trustAction.image = UIImage(named: "trustAction")
 		blockAction.image = UIImage(named: "blockAction")
 		restrictAction.image = UIImage(named: "restrictAction")
-		let swipeConfig = UISwipeActionsConfiguration(actions: [blockAction,  restrictAction, trustAction])
-		return swipeConfig
+		return UISwipeActionsConfiguration(actions: [blockAction,  restrictAction, trustAction])
 	}
 
 	@objc private func sectionHeaderTapped(_ sender: UITapGestureRecognizer) {
