@@ -11,6 +11,7 @@ import Foundation
 let controlCenterDismissedNotification = Notification.Name(rawValue: "ControlCenterDismissed")
 
 class ControlCenterViewController: UIViewController {
+	weak var homePanelDelegate: HomePanelDelegate?
 
 	var dataSource: ControlCenterDSProtocol?
 	var delegate: ControlCenterDelegateProtocol?
@@ -145,44 +146,17 @@ class ControlCenterViewController: UIViewController {
 	private func selectedPanel() -> UIViewController {
 		switch panelSwitchControl.selectedSegmentIndex {
 		case 0:
-//			self.overviewViewController.categories = self.trackersCategories
 			self.overviewViewController.dataSource = self.dataSource
 			self.overviewViewController.delegate = self.delegate
 			return self.overviewViewController
 		case 1:
-//			self.trackersViewController.trackers = trackersCategories
 			self.trackersViewController.dataSource = self.dataSource
 			self.trackersViewController.delegate = self.delegate
 			return self.trackersViewController
 		case 2:
-//			self.globalTrackersViewController.trackers = TrackerList.instance.apps.map { $0.1 }
 			return self.globalTrackersViewController
 		default:
 			return UIViewController()
 		}
 	}
-
-//	// TODO: should be moved to the DataSource
-//	private func generateCategories() {
-//		for i in self.trackers {
-////			var count = 1
-//			if let _ = self.trackersCategories[i.category] {
-//				 self.trackersCategories[i.category]?.append(i)
-////				count = x + 1
-//			} else {
-//				self.trackersCategories[i.category] = [i]
-//			}
-//		}
-//		self.overviewViewController.categories = self.trackersCategories
-//	}
-
-//	private func updateBlockedTrackersCount() {
-//		let count = self.trackers.reduce(0) { (accumulator, value) -> Int in
-//			if value.isBlocked {
-//				return accumulator + 1
-//			}
-//			return accumulator
-//		}
-//		self.overviewViewController.blockedTrackersCount = count
-//	}
 }

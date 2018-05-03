@@ -19,6 +19,8 @@ struct ControlCenterUI {
 
 class TrackersController: UIViewController {
 
+	var type: TableType = .page
+
 	weak var dataSource: ControlCenterDSProtocol? {
 		didSet {
 			updateData()
@@ -33,10 +35,6 @@ class TrackersController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
 		setupComponents()
     }
 
@@ -70,32 +68,46 @@ class TrackersController: UIViewController {
 	}
 
 	@objc private func showActionSheet() {
-		let blockTrustAlertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+		switch type {
+		case .page:
+			showPageActionSheet()
+			break
+		case .global:
+			showGlobalActionSheet()
+		}
+	}
 
+	private func showPageActionSheet() {
+		let blockTrustAlertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+		
 		let restrictAll = UIAlertAction(title: NSLocalizedString("Restrict All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Restrict All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
-				self?.restrictAllCategories()
+			self?.restrictAllCategories()
 		})
 		blockTrustAlertController.addAction(restrictAll)
 		let blockAll = UIAlertAction(title: NSLocalizedString("Block All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Block All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
 			self?.blockAllCategories()
 		})
 		blockTrustAlertController.addAction(blockAll)
-
+		
 		let trustAll = UIAlertAction(title: NSLocalizedString("Trust All", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Trust All trackers action title"), style: .default, handler: { [weak self] (alert: UIAlertAction) -> Void in
-				self?.trustAllCategories()
+			self?.trustAllCategories()
 		})
 		blockTrustAlertController.addAction(trustAll)
-
+		
 		let cancelAction = UIAlertAction(title: NSLocalizedString("Cancel", tableName: "Cliqz", comment: "[ControlCenter - Trackers list] Cancel action title"), style: .cancel)
 		blockTrustAlertController.addAction(cancelAction)
 		self.present(blockTrustAlertController, animated: true, completion: nil)
 	}
 
+	private func showGlobalActionSheet() {
+		
+	}
+
 	private func blockAllCategories() {
-		let count = self.dataSource?.numberOfSections(tableType: .page) ?? 0
+		let count = self.dataSource?.numberOfSections(tableType: type) ?? 0
 		for i in 0 ..< count {
-			if let x = self.dataSource?.category(.page, i) {
-				self.delegate?.changeState(category: x, tableType: .page, state: .blocked)
+			if let x = self.dataSource?.category(type, i) {
+				self.delegate?.changeState(category: x, tableType: type, state: .blocked)
 			}
 		}
 		self.tableView.reloadData()
@@ -110,21 +122,29 @@ class TrackersController: UIViewController {
 		self.delegate?.chageSiteState(to: .restricted)
 		self.tableView.reloadData()
 	}
+
+	@objc fileprivate func showTrackerInfo() {
+		
+	}
 }
 
 extension TrackersController: UITableViewDataSource, UITableViewDelegate {
     // MARK: - Table view data source
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.dataSource?.numberOfSections(tableType: .page) ?? 0
+        return self.dataSource?.numberOfSections(tableType: type) ?? 0
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 		if self.expandedSectionIndex == section {
-			return self.dataSource?.numberOfRows(tableType: .page, section: section) ?? 0
+			return self.dataSource?.numberOfRows(tableType: type, section: section) ?? 0
 		}
         return 0
     }
+
+	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+		return 55
+	}
 
 	func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
 		return 90
@@ -133,32 +153,30 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! TrackerViewCell
 
-        if let title = self.dataSource?.title(tableType: .page, indexPath: indexPath) {
-            cell.textLabel?.text = title
+        if let title = self.dataSource?.title(tableType: type, indexPath: indexPath) {
+            cell.trackerNameLabel.text = title
         }
-        else if let attrTitle = self.dataSource?.attributedTitle(tableType: .page, indexPath: indexPath) {
-            cell.textLabel?.attributedText = attrTitle
+        else if let attrTitle = self.dataSource?.attributedTitle(tableType: type, indexPath: indexPath) {
+            cell.trackerNameLabel.attributedText = attrTitle
         }
         else {
-            cell.textLabel?.text = ""
+            cell.trackerNameLabel.text = ""
         }
-
-		cell.textLabel?.font = UIFont.systemFont(ofSize: 16)
-		cell.textLabel?.textColor = UIColor(colorString: "C7C7CD")
-        cell.appId = self.dataSource?.appId(tableType: .page, indexPath: indexPath) ?? -1
-        cell.statusIcon.image = self.dataSource?.stateIcon(tableType: .page, indexPath: indexPath)
+		cell.selectionStyle = .none
+        cell.appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
+        cell.statusIcon.image = self.dataSource?.stateIcon(tableType: type, indexPath: indexPath)
         return cell
     }
 
 	func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
 		let header = CategoryHeaderView()
-		header.type = .page
+		header.type = type
 		header.tag = section
-		header.categoryName = self.dataSource?.title(tableType: .page, section: section)
-		header.categoryIcon = self.dataSource?.image(tableType: .page, section: section) ?? nil
-		header.trackersCount = self.dataSource?.trackerCount(tableType: .page, section: section) ?? 0
-		header.blockedTrackersCount = self.dataSource?.blockedTrackerCount(tableType: .page, section: section) ?? 0
-		header.statusIcon = self.dataSource?.stateIcon(tableType: .page, section: section)
+		header.categoryName = self.dataSource?.title(tableType: type, section: section)
+		header.categoryIcon = self.dataSource?.image(tableType: type, section: section) ?? nil
+		header.trackersCount = self.dataSource?.trackerCount(tableType: type, section: section) ?? 0
+		header.blockedTrackersCount = self.dataSource?.blockedTrackerCount(tableType: type, section: section) ?? 0
+		header.statusIcon = self.dataSource?.stateIcon(tableType: type, section: section)
 		header.isExpanded = section == expandedSectionIndex
 		
 		let headerTapGesture = UITapGestureRecognizer()
@@ -179,7 +197,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 
 	func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
 		// by default antitracking should be off until user configures manually
-        let appId = self.dataSource?.appId(tableType: .page, indexPath: indexPath) ?? -1
+        let appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
 
         let restrictAction = UIContextualAction(style: .destructive, title: "Restrict") { (action, view, complHandler) in
 			print("Restrict")
@@ -240,15 +258,20 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 }
 
 class TrackerViewCell: UITableViewCell {
+
     var appId: Int = 0
 	let infoButton = UIButton(type: .custom)
+	let trackerNameLabel = UILabel()
 	let statusIcon = UIImageView()
 
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 		self.contentView.addSubview(infoButton)
+		self.contentView.addSubview(trackerNameLabel)
 		self.contentView.addSubview(statusIcon)
 		infoButton.setImage(UIImage(named: "info"), for: .normal)
+		trackerNameLabel.font = UIFont.systemFont(ofSize: 16)
+		trackerNameLabel.textColor = UIColor(colorString: "C7C7CD")
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -259,15 +282,23 @@ class TrackerViewCell: UITableViewCell {
 		super.layoutSubviews()
 		infoButton.snp.remakeConstraints { (make) in
 			make.left.centerY.equalToSuperview()
+			make.width.equalTo(40)
+		}
+		trackerNameLabel.snp.remakeConstraints { (make) in
+			make.left.equalTo(infoButton.snp.right).offset(4)
+			make.top.centerY.equalToSuperview()
+			make.right.equalTo(statusIcon.snp.left)
 		}
 		statusIcon.snp.remakeConstraints { (make) in
 			make.right.equalToSuperview().inset(10)
 			make.centerY.equalToSuperview()
+			make.width.height.equalTo(20)
 		}
 	}
 }
 
 class CategoriesHeaderView: UIControl {
+
 	let categoriesLabel = UILabel()
 	let actionButton = UIButton(type: .custom)
 	let separator = UIView()
