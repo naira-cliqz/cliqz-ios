@@ -122,18 +122,14 @@ class TrackersController: UIViewController {
 	}
 
 	private func blockAllCategories() {
-		let count = self.dataSource?.numberOfSections(tableType: type) ?? 0
-		for i in 0 ..< count {
-			if let x = self.dataSource?.category(type, i) {
-				self.delegate?.changeState(category: x, tableType: type, state: .blocked)
-			}
-		}
+		self.delegate?.turnGlobalAntitracking(on: true)
 		self.tableView.reloadData()
 	}
 
 	private func trustAllCategories() {
 		self.delegate?.chageSiteState(to: .trusted)
 		self.tableView.reloadData()
+		self.dataSource?.stat
 	}
 
 	private func restrictAllCategories() {
@@ -142,7 +138,7 @@ class TrackersController: UIViewController {
 	}
 
 	private func unblockAllCategories() {
-		self.delegate?.chageSiteState(to: .none)
+		self.delegate?.turnGlobalAntitracking(on: false)
 		self.tableView.reloadData()
 	}
 
@@ -275,7 +271,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 		restrictAction.backgroundColor = UIColor(colorString: "BE4948")
 		trustAction.image = UIImage(named: "trustAction")
 		blockAction.image = UIImage(named: "blockAction")
-		restrictAction.image = UIImage(named: "restrictAction")
+		restrictAction.image = UIImage(named: "restrictAction") 
 		return UISwipeActionsConfiguration(actions: [blockAction,  restrictAction, trustAction])
 	}
 

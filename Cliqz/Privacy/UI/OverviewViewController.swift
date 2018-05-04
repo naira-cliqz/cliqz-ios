@@ -160,11 +160,11 @@ class OverviewViewController: UIViewController {
         var colors: [UIColor] = []
         for key in countsAndColors.keys {
             if let touple = countsAndColors[key] {
-                values.append(PieChartDataEntry(value: Double(touple.0)))
+				values.append(PieChartDataEntry(value: Double(touple.0), label: "aaasdfasdfa"))
                 colors.append(touple.1)
             }
         }
-		let dataSet = PieChartDataSet(values: values, label: "")
+		let dataSet = PieChartDataSet(values: values, label: "abc")
 		dataSet.drawIconsEnabled = false
 		dataSet.drawValuesEnabled = false
 		dataSet.iconsOffset = CGPoint(x: 0, y: 20.0)
