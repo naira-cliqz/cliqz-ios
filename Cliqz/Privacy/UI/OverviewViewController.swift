@@ -160,11 +160,11 @@ class OverviewViewController: UIViewController {
         var colors: [UIColor] = []
         for key in countsAndColors.keys {
             if let touple = countsAndColors[key] {
-				values.append(PieChartDataEntry(value: Double(touple.0), label: "aaasdfasdfa"))
+				values.append(PieChartDataEntry(value: Double(touple.0), label: ""))
                 colors.append(touple.1)
             }
         }
-		let dataSet = PieChartDataSet(values: values, label: "abc")
+		let dataSet = PieChartDataSet(values: values, label: "")
 		dataSet.drawIconsEnabled = false
 		dataSet.drawValuesEnabled = false
 		dataSet.iconsOffset = CGPoint(x: 0, y: 20.0)
@@ -244,7 +244,6 @@ class OverviewViewController: UIViewController {
 		let pauseGhostery = NSLocalizedString("Pause Ghostery", tableName: "Cliqz", comment: "[ControlCenter -> Overview] Pause Ghostery button title")
 		self.pauseGhosteryButton.setTitle(pauseGhostery, for: .normal)
         self.pauseGhosteryButton.addTarget(self, action: #selector(pauseGhosteryPressed), for: .touchUpInside)
-
 
 		// TODO: Count should be from DataSource
         self.adBlockingView.delegate = self

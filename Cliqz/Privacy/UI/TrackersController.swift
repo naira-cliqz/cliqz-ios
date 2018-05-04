@@ -122,14 +122,23 @@ class TrackersController: UIViewController {
 	}
 
 	private func blockAllCategories() {
-		self.delegate?.turnGlobalAntitracking(on: true)
+		switch type {
+		case .page:
+			let count = self.dataSource?.numberOfSections(tableType: type) ?? 0
+			for i in 0 ..< count {
+				if let x = self.dataSource?.category(type, i) {
+					self.delegate?.changeState(category: x, tableType: type, state: .blocked)
+				}
+			}
+		case .global:
+			self.delegate?.turnGlobalAntitracking(on: true)
+		}
 		self.tableView.reloadData()
 	}
 
 	private func trustAllCategories() {
 		self.delegate?.chageSiteState(to: .trusted)
 		self.tableView.reloadData()
-		self.dataSource?.stat
 	}
 
 	private func restrictAllCategories() {
@@ -174,10 +183,10 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 
         let touple = self.dataSource?.title(tableType: .page, indexPath: indexPath)
         if let title = touple?.0 {
-            cell.textLabel?.text = title
+            cell.trackerNameLabel.text = title
         }
         else if let attrTitle = touple?.1 {
-            cell.textLabel?.attributedText = attrTitle
+            cell.trackerNameLabel.attributedText = attrTitle
         }
         else {
             cell.trackerNameLabel.text = ""
