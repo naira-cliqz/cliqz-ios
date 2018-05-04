@@ -181,7 +181,7 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! TrackerViewCell
 
-        let touple = self.dataSource?.title(tableType: .page, indexPath: indexPath)
+        let touple = self.dataSource?.title(tableType: type, indexPath: indexPath)
         if let title = touple?.0 {
             cell.trackerNameLabel.text = title
         }
