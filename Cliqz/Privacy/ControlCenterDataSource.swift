@@ -330,7 +330,7 @@ extension ControlCenterDataSource {
         if let state = state {
             switch state {
             case .none:
-                return nil
+                return UIImage(named: "empty")
             case .blocked:
                 return UIImage(named: "blockTracker")
             case .restricted:

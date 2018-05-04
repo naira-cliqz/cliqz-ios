@@ -229,7 +229,7 @@ class OverviewViewController: UIViewController {
 		self.view.addSubview(adBlockingView)
 		self.adBlockingView.snp.makeConstraints { (make) in
 			make.left.right.equalTo(self.view)
-			make.top.equalTo(self.pauseGhosteryButton.snp.bottom).offset(10)
+			make.top.equalTo(self.pauseGhosteryButton.snp.bottom).offset(20)
 			make.height.equalTo(40)
 		}
 
