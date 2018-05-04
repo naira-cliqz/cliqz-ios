@@ -176,11 +176,12 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath) as! TrackerViewCell
 
-        if let title = self.dataSource?.title(tableType: type, indexPath: indexPath) {
-            cell.trackerNameLabel.text = title
+        let touple = self.dataSource?.title(tableType: .page, indexPath: indexPath)
+        if let title = touple?.0 {
+            cell.textLabel?.text = title
         }
-        else if let attrTitle = self.dataSource?.attributedTitle(tableType: type, indexPath: indexPath) {
-            cell.trackerNameLabel.attributedText = attrTitle
+        else if let attrTitle = touple?.1 {
+            cell.textLabel?.attributedText = attrTitle
         }
         else {
             cell.trackerNameLabel.text = ""
@@ -219,6 +220,9 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 	}
 
 	func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        if let domainState = self.dataSource?.domainState(), domainState != .none {
+            return UISwipeActionsConfiguration(actions: [])
+        }
 		switch (type) {
 		case .page:
 			return self.swipeConfigForPage(at: indexPath)
@@ -278,6 +282,10 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 		restrictAction.image = UIImage(named: "restrictAction")
 		return UISwipeActionsConfiguration(actions: [blockAction,  restrictAction, trustAction])
 	}
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.tableView.deselectRow(at: indexPath, animated: true)
+    }
 
 	@objc private func sectionHeaderTapped(_ sender: UITapGestureRecognizer) {
 		let headerView = sender.view
