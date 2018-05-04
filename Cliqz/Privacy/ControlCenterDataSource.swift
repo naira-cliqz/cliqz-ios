@@ -13,6 +13,13 @@ enum TableType {
     case global
 }
 
+enum ActionType {
+    case trust
+    case block
+    case unblock
+    case restrict
+}
+
 protocol ControlCenterDSProtocol: class {
     
     func domainString() -> String
@@ -39,6 +46,7 @@ protocol ControlCenterDSProtocol: class {
     func title(tableType: TableType, indexPath: IndexPath) -> (String?, NSMutableAttributedString?)
     func stateIcon(tableType: TableType, indexPath: IndexPath) -> UIImage?
     func appId(tableType: TableType, indexPath: IndexPath) -> Int
+    func actions(tableType: TableType, indexPath: IndexPath) -> [ActionType]
 }
 
 class ControlCenterDataSource: ControlCenterDSProtocol {
@@ -271,6 +279,24 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     func appId(tableType: TableType, indexPath: IndexPath) -> Int {
         guard let t = tracker(tableType: tableType, indexPath: indexPath) else { return -1 }
         return t.appId
+    }
+    
+    func actions(tableType: TableType, indexPath: IndexPath) -> [ActionType] {
+        
+        if domainState() != .none {
+            return []
+        }
+        
+        if tableType == .page {
+            return [.trust, .block, .restrict]
+        }
+        
+        guard let t = tracker(tableType: tableType, indexPath: indexPath) else { return [] }
+        if t.state.translatedState == .blocked {
+            return [.unblock]
+        }
+        
+        return [.block]
     }
 }
 
