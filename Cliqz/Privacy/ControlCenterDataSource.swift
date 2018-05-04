@@ -36,8 +36,7 @@ protocol ControlCenterDSProtocol: class {
     func stateIcon(tableType: TableType, section: Int) -> UIImage?
     
     //INDIVIDUAL TRACKERS
-    func title(tableType: TableType, indexPath: IndexPath) -> String?
-    func attributedTitle(tableType: TableType, indexPath: IndexPath) -> NSMutableAttributedString?
+    func title(tableType: TableType, indexPath: IndexPath) -> (String?, NSMutableAttributedString?)
     func stateIcon(tableType: TableType, indexPath: IndexPath) -> UIImage?
     func appId(tableType: TableType, indexPath: IndexPath) -> Int
 }
@@ -199,6 +198,10 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     
     func stateIcon(tableType: TableType, section: Int) -> UIImage? {
         
+        if isGlobalAntitrackingOn() {
+            return iconForCategoryState(state: .blocked)
+        }
+        
         let domainState = self.domainState()
         
         if domainState == .restricted {
@@ -232,32 +235,26 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     //INDIVIDUAL TRACKERS
-    func title(tableType: TableType, indexPath: IndexPath) -> String? {
-        guard let t = tracker(tableType: tableType, indexPath: indexPath) else { return nil }
+    func title(tableType: TableType, indexPath: IndexPath) -> (String?, NSMutableAttributedString?) {
+        guard let t = tracker(tableType: tableType, indexPath: indexPath) else { return (nil, nil) }
         let state: TrackerStateEnum = t.state.translatedState
+        let domainState = self.domainState()
         
-        if state == .blocked || state == .restricted {
-            return nil
-        }
-        
-        return t.name
-    }
-    
-    func attributedTitle(tableType: TableType, indexPath: IndexPath) -> NSMutableAttributedString? {
-        guard let t = tracker(tableType: tableType, indexPath: indexPath) else { return nil }
-        let state: TrackerStateEnum = t.state.translatedState
-        
-        if state == .blocked || state == .restricted {
+        if ((state == .blocked || state == .restricted || domainState == .restricted) && domainState != .trusted) || isGlobalAntitrackingOn() {
             let str = NSMutableAttributedString(string: t.name)
             str.addAttributes([NSStrikethroughStyleAttributeName : 1], range: NSMakeRange(0, t.name.count))
-            return str
+            return (nil, str)
         }
         
-        return nil
+        return (t.name, nil)
     }
     
     func stateIcon(tableType: TableType, indexPath: IndexPath) -> UIImage? {
         guard let t = tracker(tableType: tableType, indexPath: indexPath) else { return nil }
+        
+        if isGlobalAntitrackingOn() {
+            return iconForTrackerState(state: .blocked)
+        }
         
         let domainState = self.domainState()
         

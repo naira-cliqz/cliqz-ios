@@ -178,6 +178,9 @@ class OverviewViewController: UIViewController {
 		} else if domainState == .restricted {
 			setRestrictSite(true)
 		}
+        else {
+            setSiteToNone()
+        }
 		setPauseGhostery(datasource.isGhosteryPaused())
 	}
 
@@ -360,6 +363,13 @@ class OverviewViewController: UIViewController {
     private func setRestrictSite(_ value: Bool) {
         self.restrictSiteButton.isSelected = value
         self.trustSiteButton.isSelected = false
+        updateTrustSiteUI()
+        updateRestrictSiteUI()
+    }
+    
+    private func setSiteToNone() {
+        self.trustSiteButton.isSelected = false
+        self.restrictSiteButton.isSelected = false
         updateTrustSiteUI()
         updateRestrictSiteUI()
     }
