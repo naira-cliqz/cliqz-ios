@@ -225,9 +225,6 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 	}
 
 	func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        if let domainState = self.dataSource?.domainState(), domainState != .none {
-            return UISwipeActionsConfiguration(actions: [])
-        }
 		switch (type) {
 		case .page:
 			return self.swipeConfigForPage(at: indexPath)
