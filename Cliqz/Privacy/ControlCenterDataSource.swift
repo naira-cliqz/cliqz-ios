@@ -129,7 +129,7 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     func blockedTrackerCount() -> Int {
         let domainS = domainState()
         
-        if domainS == .restricted {
+        if domainS == .restricted || isGlobalAntitrackingOn() {
             return detectedTrackerCount()
         } else if domainS == .trusted {
             return 0
@@ -198,6 +198,9 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
     }
     
     func blockedTrackerCount(tableType: TableType, section: Int) -> Int {
+        if isGlobalAntitrackingOn() {
+            return trackerCount(tableType:tableType, section: section)
+        }
         return trackers(tableType: tableType, category: category(tableType, section)).filter({ (app) -> Bool in
             let translatedState = app.state.translatedState
             return translatedState == .blocked || translatedState == .restricted
