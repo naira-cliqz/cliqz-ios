@@ -291,7 +291,7 @@ class ControlCenterDataSource: ControlCenterDSProtocol {
         }
         
         if tableType == .page {
-            return [.trust, .block, .restrict]
+            return [.block, .restrict, .trust]
         }
         
         guard let t = tracker(tableType: tableType, indexPath: indexPath) else { return [] }

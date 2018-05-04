@@ -15,6 +15,7 @@ let trackerViewDismissedNotification = Notification.Name(rawValue: "TrackerViewD
 
 struct ControlCenterUI {
 	static let separatorGray = UIColor(colorString: "E0E0E0")
+	static let textGray = UIColor(colorString: "C7C7CD")
 }
 
 class TrackersController: UIViewController {
@@ -223,66 +224,61 @@ extension TrackersController: UITableViewDataSource, UITableViewDelegate {
 	}
 
 	func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-		switch (type) {
-		case .page:
-			return self.swipeConfigForPage(at: indexPath)
-		case .global:
-			return self.swipeConfigForGlobal(at: indexPath)
+		let appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
+		var swipeActions = [UIContextualAction]()
+		if let actions = self.dataSource?.actions(tableType: type, indexPath: indexPath) {
+			for action in actions {
+				switch action {
+				case .trust:
+					let trustAction = UIContextualAction(style: .normal, title: "Trust") { (action, view, complHandler) in
+						self.delegate?.changeState(appId: appId, state: .trusted)
+						self.tableView.beginUpdates()
+						self.tableView.reloadSections([indexPath.section], with: .none)
+						self.tableView.endUpdates()
+						complHandler(false)
+					}
+					trustAction.backgroundColor = UIColor.cliqzGreenLightFunctional
+					trustAction.image = UIImage(named: "trustAction")
+					swipeActions.append(trustAction)
+				case .block:
+					let blockAction = UIContextualAction(style: .destructive, title: "Block") { (action, view, complHandler) in
+						self.delegate?.changeState(appId: appId, state: .blocked)
+						self.tableView.beginUpdates()
+						self.tableView.reloadSections([indexPath.section], with: .none)
+						self.tableView.endUpdates()
+						complHandler(false)
+					}
+					blockAction.backgroundColor = UIColor(colorString: "E74055")
+					blockAction.image = UIImage(named: "blockAction")
+					swipeActions.append(blockAction)
+				case .unblock:
+					let unblockAction = UIContextualAction(style: .destructive, title: "Unblock") { (action, view, complHandler) in
+						self.delegate?.changeState(appId: appId, state: .none)
+						self.tableView.beginUpdates()
+						self.tableView.reloadSections([indexPath.section], with: .none)
+						self.tableView.endUpdates()
+						complHandler(false)
+					}
+					unblockAction.backgroundColor = ControlCenterUI.textGray
+					unblockAction.image = UIImage(named: "unblockAction")
+					swipeActions.append(unblockAction)
+				case .restrict:
+					let restrictAction = UIContextualAction(style: .destructive, title: "Restrict") { (action, view, complHandler) in
+						self.delegate?.changeState(appId: appId, state: .restricted)
+						self.tableView.beginUpdates()
+						self.tableView.reloadSections([indexPath.section], with: .none)
+						self.tableView.endUpdates()
+						complHandler(false)
+					}
+					restrictAction.backgroundColor = UIColor(colorString: "BE4948")
+					restrictAction.image = UIImage(named: "restrictAction")
+					swipeActions.append(restrictAction)
+				}
+			}
 		}
+		return UISwipeActionsConfiguration(actions: swipeActions)
 	}
 
-	private func swipeConfigForGlobal(at indexPath: IndexPath) -> UISwipeActionsConfiguration {
-		let appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
-		let blockAction = UIContextualAction(style: .destructive, title: "Block") { (action, view, complHandler) in
-			print("Block")
-			self.delegate?.changeState(appId: appId, state: .blocked)
-			self.tableView.beginUpdates()
-			self.tableView.reloadSections([indexPath.section], with: .none)
-			self.tableView.endUpdates()
-			complHandler(false)
-		}
-		blockAction.backgroundColor = UIColor(colorString: "E74055")
-		blockAction.image = UIImage(named: "blockAction")
-		return UISwipeActionsConfiguration(actions: [blockAction])
-	}
-
-	private func swipeConfigForPage(at indexPath: IndexPath) -> UISwipeActionsConfiguration {
-		let appId = self.dataSource?.appId(tableType: type, indexPath: indexPath) ?? -1
-		let restrictAction = UIContextualAction(style: .destructive, title: "Restrict") { (action, view, complHandler) in
-		print("Restrict")
-		self.delegate?.changeState(appId: appId, state: .restricted)
-	
-		self.tableView.beginUpdates()
-		self.tableView.reloadSections([indexPath.section], with: .none)
-		self.tableView.endUpdates()
-		complHandler(false)
-		}
-		let blockAction = UIContextualAction(style: .destructive, title: "Block") { (action, view, complHandler) in
-		print("Block")
-		self.delegate?.changeState(appId: appId, state: .blocked)
-		self.tableView.beginUpdates()
-		self.tableView.reloadSections([indexPath.section], with: .none)
-		self.tableView.endUpdates()
-		complHandler(false)
-		}
-		let trustAction = UIContextualAction(style: .normal, title: "Trust") { (action, view, complHandler) in
-		print("Trust")
-		self.delegate?.changeState(appId: appId, state: .trusted)
-		self.tableView.beginUpdates()
-		self.tableView.reloadSections([indexPath.section], with: .none)
-		self.tableView.endUpdates()
-		complHandler(false)
-		}
-	
-		trustAction.backgroundColor = UIColor.cliqzGreenLightFunctional
-		blockAction.backgroundColor = UIColor(colorString: "E74055")
-		restrictAction.backgroundColor = UIColor(colorString: "BE4948")
-		trustAction.image = UIImage(named: "trustAction")
-		blockAction.image = UIImage(named: "blockAction")
-		restrictAction.image = UIImage(named: "restrictAction") 
-		return UISwipeActionsConfiguration(actions: [blockAction,  restrictAction, trustAction])
-	}
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -323,7 +319,7 @@ class TrackerViewCell: UITableViewCell {
 		self.contentView.addSubview(statusIcon)
 		infoButton.setImage(UIImage(named: "info"), for: .normal)
 		trackerNameLabel.font = UIFont.systemFont(ofSize: 16)
-		trackerNameLabel.textColor = UIColor(colorString: "C7C7CD")
+		trackerNameLabel.textColor = ControlCenterUI.textGray
     }
 
     required init?(coder aDecoder: NSCoder) {
